@@ -3,9 +3,9 @@ package remove
 import (
 	"fmt"
 
-	"github.com/magdyamr542/ssh-tunnel-manager/cmd/add"
-	"github.com/magdyamr542/ssh-tunnel-manager/configmanager"
-	"github.com/magdyamr542/ssh-tunnel-manager/utils"
+	"github.com/besrabasant/ssh-tunnel-manager/cmd/add"
+	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/utils"
 	"github.com/urfave/cli/v2"
 )
 

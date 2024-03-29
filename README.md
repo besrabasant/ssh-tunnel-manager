@@ -11,7 +11,7 @@ Save SSH tunnel configurations and start a tunnel with port forwarding using one
 
 ## Install
 
-`go install github.com/magdyamr542/ssh-tunnel-manager@latest`
+`go install github.com/besrabasant/ssh-tunnel-manager@latest`
 
 ## Usage
 

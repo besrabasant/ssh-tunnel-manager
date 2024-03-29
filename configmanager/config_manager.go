@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/magdyamr542/ssh-tunnel-manager/editor"
+	"github.com/besrabasant/ssh-tunnel-manager/editor"
 )
 
 // DefaultConfigDir is the default directory where configurations are saved

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package daemon;
+
+option go_package = "github.com/besrabasant/ssh-tunnel-manager/rpc";
+
+// The daemon service definition.
+service DaemonService {
+  // Executes a command in the background.
+  rpc ListConfigurations (ListConfigurationsRequest) returns (ListConfigurationsResponse) {}
+}
+
+// The request message containing the command to execute.
+message ListConfigurationsRequest {
+  string search_pattern = 1;
+}
+
+// The response message containing the result of the execution.
+message ListConfigurationsResponse {
+  string result = 1;
+}
