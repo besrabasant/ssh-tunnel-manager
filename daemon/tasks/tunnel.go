@@ -141,7 +141,7 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		keyFile := entry.KeyFile
 		// The remote host and port to forward traffic to
 		remoteAddress := fmt.Sprintf("%s:%d", entry.RemoteHost, entry.RemotePort)
-		localAddress := fmt.Sprintf("%s:%d", "localhost", localPort)
+		localAddress := fmt.Sprintf("%s:%d", "127.0.0.1", localPort)
 
 		// Check if the ssh server address specifies a port. And use 22 if not.
 		_, _, err := net.SplitHostPort(sshServer)
@@ -197,7 +197,7 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		var localListener net.Listener
 		var listenerErr error
 		for attempts := 0; attempts < 5; attempts++ {
-			localListener, listenerErr = net.Listen("tcp", fmt.Sprintf("localhost:%d", localPort))
+			localListener, listenerErr = net.Listen("tcp", localAddress)
 			if listenerErr == nil {
 				break // Successfully bound to the port
 			}
