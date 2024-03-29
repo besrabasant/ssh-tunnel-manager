@@ -3,18 +3,15 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/besrabasant/ssh-tunnel-manager/client/config"
+	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
-var ListConfigurationsCmd  = &cobra.Command{
+var ListConfigurationsCmd = &cobra.Command{
 	Use:     "list [search pattern]",
 	Aliases: []string{"l", "ls"},
 	Short:   "List configurations (You can use a pattern to only list the configurations that fuzzy match that pattern)",
@@ -29,19 +26,19 @@ When using it like this "sshtm list prod" it will only list configurations that 
 			searchPattern = args[0]
 		}
 
-		conn, err := grpc.Dial(config.Address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+		c, cleanup, err := lib.CreateDaemonServiceClient()
 		if err != nil {
-			fmt.Printf("did not connect: %v", err)
+			fmt.Printf("%v\n", err)
+			return
 		}
-		defer conn.Close()
-
-		c := pb.NewDaemonServiceClient(conn)
+		defer cleanup()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		r, err := c.ListConfigurations(ctx, &pb.ListConfigurationsRequest{SearchPattern: searchPattern})
 		if err != nil {
-			log.Fatalf("could not execute command: %v", err)
+			fmt.Printf("could not execute command: %v", err)
+			return
 		}
 		fmt.Printf("%s", r.GetResult())
 	},

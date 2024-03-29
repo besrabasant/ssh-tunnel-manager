@@ -9,6 +9,7 @@ import (
 
 func main() {
 	cmd.SshtmCmd.AddCommand(cmd.ListConfigurationsCmd)
+	cmd.SshtmCmd.AddCommand(cmd.TunnelCmd)
 	if err := cmd.SshtmCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

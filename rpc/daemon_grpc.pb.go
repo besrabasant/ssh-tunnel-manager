@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DaemonServiceClient interface {
-	// Executes a command in the background.
 	ListConfigurations(ctx context.Context, in *ListConfigurationsRequest, opts ...grpc.CallOption) (*ListConfigurationsResponse, error)
+	StartTunnel(ctx context.Context, in *StartTunnelRequest, opts ...grpc.CallOption) (*StartTunnelResponse, error)
 }
 
 type daemonServiceClient struct {
@@ -43,12 +43,21 @@ func (c *daemonServiceClient) ListConfigurations(ctx context.Context, in *ListCo
 	return out, nil
 }
 
+func (c *daemonServiceClient) StartTunnel(ctx context.Context, in *StartTunnelRequest, opts ...grpc.CallOption) (*StartTunnelResponse, error) {
+	out := new(StartTunnelResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/StartTunnel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DaemonServiceServer is the server API for DaemonService service.
 // All implementations must embed UnimplementedDaemonServiceServer
 // for forward compatibility
 type DaemonServiceServer interface {
-	// Executes a command in the background.
 	ListConfigurations(context.Context, *ListConfigurationsRequest) (*ListConfigurationsResponse, error)
+	StartTunnel(context.Context, *StartTunnelRequest) (*StartTunnelResponse, error)
 	mustEmbedUnimplementedDaemonServiceServer()
 }
 
@@ -58,6 +67,9 @@ type UnimplementedDaemonServiceServer struct {
 
 func (UnimplementedDaemonServiceServer) ListConfigurations(context.Context, *ListConfigurationsRequest) (*ListConfigurationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListConfigurations not implemented")
+}
+func (UnimplementedDaemonServiceServer) StartTunnel(context.Context, *StartTunnelRequest) (*StartTunnelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartTunnel not implemented")
 }
 func (UnimplementedDaemonServiceServer) mustEmbedUnimplementedDaemonServiceServer() {}
 
@@ -90,6 +102,24 @@ func _DaemonService_ListConfigurations_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DaemonService_StartTunnel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartTunnelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).StartTunnel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/StartTunnel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).StartTunnel(ctx, req.(*StartTunnelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DaemonService_ServiceDesc is the grpc.ServiceDesc for DaemonService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +130,10 @@ var DaemonService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListConfigurations",
 			Handler:    _DaemonService_ListConfigurations_Handler,
+		},
+		{
+			MethodName: "StartTunnel",
+			Handler:    _DaemonService_StartTunnel_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
