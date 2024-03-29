@@ -50,10 +50,10 @@ func (c *ConnectionInfo) KillAllConns() {
 }
 
 var (
-	// Map to keep track of connections by their local port
-	connections = make(map[int]ConnectionInfo)
+	// Map to keep track of Connections by their local port
+	Connections = make(map[int]ConnectionInfo)
 	// Mutex to protect access to the connections map
-	connMutex = &sync.Mutex{}
+	ConnMutex = &sync.Mutex{}
 
 	shutdown = make(chan struct{}) // Signal for shutdown
 )
@@ -110,8 +110,8 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		defer close(resultChan)
 		defer close(errorChan)
 
-		connMutex.Lock()
-		if connInfo, exists := connections[localPort]; exists {
+		ConnMutex.Lock()
+		if connInfo, exists := Connections[localPort]; exists {
 			resultChan <- fmt.Sprint("Closing existing connection on port ", localPort, "\n")
 
 			// If there's an existing connection on the same port, close it
@@ -127,11 +127,11 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 
 		// Create new cancellation context for this connection
 		tunnelCtx, cancel := context.WithCancel(ctx)
-		connections[localPort] = ConnectionInfo{
+		Connections[localPort] = ConnectionInfo{
 			Listen: nil, // This will be updated once the listener is set up
 			Cancel: cancel,
 		}
-		connMutex.Unlock()
+		ConnMutex.Unlock()
 
 		// The SSH server to connect to. The address can contain a port.
 		sshServer := entry.Server
@@ -210,11 +210,11 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		defer localListener.Close()
 
 		// Update the connections map with the actual listener
-		connMutex.Lock()
-		currentConnInfo := connections[localPort]
+		ConnMutex.Lock()
+		currentConnInfo := Connections[localPort]
 		currentConnInfo.Listen = &localListener
-		connections[localPort] = currentConnInfo
-		connMutex.Unlock()
+		Connections[localPort] = currentConnInfo
+		ConnMutex.Unlock()
 
 		resultChan <- "Local listener set up, ready to accept connections.\n"
 
@@ -243,10 +243,10 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 			case <- shutdown:
 				// If we're done, ensure we close the listener if it's not nil.
 				if localListener != nil {
-					connMutex.Lock()
-					currentConnInfo := connections[localPort]
+					ConnMutex.Lock()
+					currentConnInfo := Connections[localPort]
 					currentConnInfo.StopListening()
-					connMutex.Unlock()
+					ConnMutex.Unlock()
 				}
 			default:
 				if localListener == nil {
@@ -262,11 +262,11 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 				if localConn != nil {
 
 					// Update the connections map with the actual listener
-					connMutex.Lock()
-					currentConnInfo := connections[localPort]
+					ConnMutex.Lock()
+					currentConnInfo := Connections[localPort]
 					currentConnInfo.AddConnection(localConn)
-					connections[localPort] = currentConnInfo
-					connMutex.Unlock()
+					Connections[localPort] = currentConnInfo
+					ConnMutex.Unlock()
 
 					fmt.Printf("Got new connection: %s\n", localConn.RemoteAddr())
 					// Handle the connection...

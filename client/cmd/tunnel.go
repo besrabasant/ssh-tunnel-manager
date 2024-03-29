@@ -27,7 +27,7 @@ var StartSshTunnelCmd = &cobra.Command{
 		var localPort int
 
 		if len(args) == 0 {
-			fmt.Println("<configuration name> needed but not provided")
+			fmt.Println("\n<configuration name> needed but not provided")
 			return
 		}
 
