@@ -6,7 +6,20 @@ option go_package = "github.com/besrabasant/ssh-tunnel-manager/rpc";
 
 service DaemonService {
   rpc ListConfigurations (ListConfigurationsRequest) returns (ListConfigurationsResponse) {}
+
+  rpc AddConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
+  
+  rpc UpdateConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
+  
+  rpc FetchConfiguration (FetchConfigurationRequest) returns (FetchConfigurationResponse) {}
+  
+  rpc DeleteConfiguration (DeleteConfigurationRequest) returns (DeleteConfigurationResponse) {}
+  
   rpc StartTunnel (StartTunnelRequest) returns (StartTunnelResponse) {}
+  
+  rpc KillTunnel (KillTunnelRequest) returns (KillTunnelResponse) {}
+  
+  rpc ListActiveTunnels (ListActiveTunnelsRequest) returns (ListActiveTunnelsResponse) {}
 }
 
 message ListConfigurationsRequest {
@@ -17,11 +30,59 @@ message ListConfigurationsResponse {
   string result = 1;
 }
 
+message AddOrUpdateConfigurationRequest {
+  string name = 1;
+  string description = 2;
+  string server = 3;
+  string user = 4;
+  string key_file = 5;
+  string remote_host = 6;
+  int32 remote_port = 7;
+}
+
+message AddOrUpdateConfigurationResponse {
+  string result = 1;
+}
+
+
+message FetchConfigurationRequest {
+  string name = 1;
+}
+
+message FetchConfigurationResponse {
+  string result = 1;
+}
+
+message DeleteConfigurationRequest {
+  string name = 1;
+}
+
+message DeleteConfigurationResponse {
+  string result = 1;
+}
+
+
 message StartTunnelRequest {
   string config_name = 1;
   int32 local_port = 2;
 }
 
 message StartTunnelResponse {
+  string result = 1;
+}
+
+message ListActiveTunnelsRequest {
+}
+
+message ListActiveTunnelsResponse {
+  string result = 1;
+}
+
+message KillTunnelRequest {
+  string config_name = 1;
+  int32 local_port = 2;
+}
+
+message KillTunnelResponse {
   string result = 1;
 }

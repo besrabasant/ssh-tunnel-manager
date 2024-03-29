@@ -23,7 +23,13 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DaemonServiceClient interface {
 	ListConfigurations(ctx context.Context, in *ListConfigurationsRequest, opts ...grpc.CallOption) (*ListConfigurationsResponse, error)
+	AddConfiguration(ctx context.Context, in *AddOrUpdateConfigurationRequest, opts ...grpc.CallOption) (*AddOrUpdateConfigurationResponse, error)
+	UpdateConfiguration(ctx context.Context, in *AddOrUpdateConfigurationRequest, opts ...grpc.CallOption) (*AddOrUpdateConfigurationResponse, error)
+	FetchConfiguration(ctx context.Context, in *FetchConfigurationRequest, opts ...grpc.CallOption) (*FetchConfigurationResponse, error)
+	DeleteConfiguration(ctx context.Context, in *DeleteConfigurationRequest, opts ...grpc.CallOption) (*DeleteConfigurationResponse, error)
 	StartTunnel(ctx context.Context, in *StartTunnelRequest, opts ...grpc.CallOption) (*StartTunnelResponse, error)
+	KillTunnel(ctx context.Context, in *KillTunnelRequest, opts ...grpc.CallOption) (*KillTunnelResponse, error)
+	ListActiveTunnels(ctx context.Context, in *ListActiveTunnelsRequest, opts ...grpc.CallOption) (*ListActiveTunnelsResponse, error)
 }
 
 type daemonServiceClient struct {
@@ -43,9 +49,63 @@ func (c *daemonServiceClient) ListConfigurations(ctx context.Context, in *ListCo
 	return out, nil
 }
 
+func (c *daemonServiceClient) AddConfiguration(ctx context.Context, in *AddOrUpdateConfigurationRequest, opts ...grpc.CallOption) (*AddOrUpdateConfigurationResponse, error) {
+	out := new(AddOrUpdateConfigurationResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/AddConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *daemonServiceClient) UpdateConfiguration(ctx context.Context, in *AddOrUpdateConfigurationRequest, opts ...grpc.CallOption) (*AddOrUpdateConfigurationResponse, error) {
+	out := new(AddOrUpdateConfigurationResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/UpdateConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *daemonServiceClient) FetchConfiguration(ctx context.Context, in *FetchConfigurationRequest, opts ...grpc.CallOption) (*FetchConfigurationResponse, error) {
+	out := new(FetchConfigurationResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/FetchConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *daemonServiceClient) DeleteConfiguration(ctx context.Context, in *DeleteConfigurationRequest, opts ...grpc.CallOption) (*DeleteConfigurationResponse, error) {
+	out := new(DeleteConfigurationResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/DeleteConfiguration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *daemonServiceClient) StartTunnel(ctx context.Context, in *StartTunnelRequest, opts ...grpc.CallOption) (*StartTunnelResponse, error) {
 	out := new(StartTunnelResponse)
 	err := c.cc.Invoke(ctx, "/daemon.DaemonService/StartTunnel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *daemonServiceClient) KillTunnel(ctx context.Context, in *KillTunnelRequest, opts ...grpc.CallOption) (*KillTunnelResponse, error) {
+	out := new(KillTunnelResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/KillTunnel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *daemonServiceClient) ListActiveTunnels(ctx context.Context, in *ListActiveTunnelsRequest, opts ...grpc.CallOption) (*ListActiveTunnelsResponse, error) {
+	out := new(ListActiveTunnelsResponse)
+	err := c.cc.Invoke(ctx, "/daemon.DaemonService/ListActiveTunnels", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +117,13 @@ func (c *daemonServiceClient) StartTunnel(ctx context.Context, in *StartTunnelRe
 // for forward compatibility
 type DaemonServiceServer interface {
 	ListConfigurations(context.Context, *ListConfigurationsRequest) (*ListConfigurationsResponse, error)
+	AddConfiguration(context.Context, *AddOrUpdateConfigurationRequest) (*AddOrUpdateConfigurationResponse, error)
+	UpdateConfiguration(context.Context, *AddOrUpdateConfigurationRequest) (*AddOrUpdateConfigurationResponse, error)
+	FetchConfiguration(context.Context, *FetchConfigurationRequest) (*FetchConfigurationResponse, error)
+	DeleteConfiguration(context.Context, *DeleteConfigurationRequest) (*DeleteConfigurationResponse, error)
 	StartTunnel(context.Context, *StartTunnelRequest) (*StartTunnelResponse, error)
+	KillTunnel(context.Context, *KillTunnelRequest) (*KillTunnelResponse, error)
+	ListActiveTunnels(context.Context, *ListActiveTunnelsRequest) (*ListActiveTunnelsResponse, error)
 	mustEmbedUnimplementedDaemonServiceServer()
 }
 
@@ -68,8 +134,26 @@ type UnimplementedDaemonServiceServer struct {
 func (UnimplementedDaemonServiceServer) ListConfigurations(context.Context, *ListConfigurationsRequest) (*ListConfigurationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListConfigurations not implemented")
 }
+func (UnimplementedDaemonServiceServer) AddConfiguration(context.Context, *AddOrUpdateConfigurationRequest) (*AddOrUpdateConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddConfiguration not implemented")
+}
+func (UnimplementedDaemonServiceServer) UpdateConfiguration(context.Context, *AddOrUpdateConfigurationRequest) (*AddOrUpdateConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateConfiguration not implemented")
+}
+func (UnimplementedDaemonServiceServer) FetchConfiguration(context.Context, *FetchConfigurationRequest) (*FetchConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchConfiguration not implemented")
+}
+func (UnimplementedDaemonServiceServer) DeleteConfiguration(context.Context, *DeleteConfigurationRequest) (*DeleteConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteConfiguration not implemented")
+}
 func (UnimplementedDaemonServiceServer) StartTunnel(context.Context, *StartTunnelRequest) (*StartTunnelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartTunnel not implemented")
+}
+func (UnimplementedDaemonServiceServer) KillTunnel(context.Context, *KillTunnelRequest) (*KillTunnelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KillTunnel not implemented")
+}
+func (UnimplementedDaemonServiceServer) ListActiveTunnels(context.Context, *ListActiveTunnelsRequest) (*ListActiveTunnelsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListActiveTunnels not implemented")
 }
 func (UnimplementedDaemonServiceServer) mustEmbedUnimplementedDaemonServiceServer() {}
 
@@ -102,6 +186,78 @@ func _DaemonService_ListConfigurations_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DaemonService_AddConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrUpdateConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).AddConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/AddConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).AddConfiguration(ctx, req.(*AddOrUpdateConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DaemonService_UpdateConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrUpdateConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).UpdateConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/UpdateConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).UpdateConfiguration(ctx, req.(*AddOrUpdateConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DaemonService_FetchConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).FetchConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/FetchConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).FetchConfiguration(ctx, req.(*FetchConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DaemonService_DeleteConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).DeleteConfiguration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/DeleteConfiguration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).DeleteConfiguration(ctx, req.(*DeleteConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DaemonService_StartTunnel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StartTunnelRequest)
 	if err := dec(in); err != nil {
@@ -120,6 +276,42 @@ func _DaemonService_StartTunnel_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DaemonService_KillTunnel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KillTunnelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).KillTunnel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/KillTunnel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).KillTunnel(ctx, req.(*KillTunnelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DaemonService_ListActiveTunnels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListActiveTunnelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).ListActiveTunnels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/daemon.DaemonService/ListActiveTunnels",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).ListActiveTunnels(ctx, req.(*ListActiveTunnelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DaemonService_ServiceDesc is the grpc.ServiceDesc for DaemonService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,8 +324,32 @@ var DaemonService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DaemonService_ListConfigurations_Handler,
 		},
 		{
+			MethodName: "AddConfiguration",
+			Handler:    _DaemonService_AddConfiguration_Handler,
+		},
+		{
+			MethodName: "UpdateConfiguration",
+			Handler:    _DaemonService_UpdateConfiguration_Handler,
+		},
+		{
+			MethodName: "FetchConfiguration",
+			Handler:    _DaemonService_FetchConfiguration_Handler,
+		},
+		{
+			MethodName: "DeleteConfiguration",
+			Handler:    _DaemonService_DeleteConfiguration_Handler,
+		},
+		{
 			MethodName: "StartTunnel",
 			Handler:    _DaemonService_StartTunnel_Handler,
+		},
+		{
+			MethodName: "KillTunnel",
+			Handler:    _DaemonService_KillTunnel_Handler,
+		},
+		{
+			MethodName: "ListActiveTunnels",
+			Handler:    _DaemonService_ListActiveTunnels_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

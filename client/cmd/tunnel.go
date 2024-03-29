@@ -14,7 +14,7 @@ import (
 
 /* Release 1.0 */
 
-var TunnelCmd = &cobra.Command{
+var StartSshTunnelCmd = &cobra.Command{
 	Use:           "tunnel <configuration name>",
 	Short:         "Start a tunnel using a configuration. The tunnel will forward connections to [local port] if specified or to a random port.",
 	Long:          "ssh-tunnel-manager tunnel <configuration name> [local port]",
