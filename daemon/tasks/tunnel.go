@@ -23,9 +23,12 @@ const (
 )
 
 type ConnectionInfo struct {
-	Listen *net.Listener
-	Conns  []net.Conn
-	Cancel func()
+	Listen     *net.Listener
+	LocalAddr  string
+	RemoteAddr string
+	Conns      []net.Conn
+	Config     configmanager.Entry
+	Cancel     func()
 }
 
 func (c *ConnectionInfo) AddConnection(conn net.Conn) {
@@ -125,14 +128,6 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		// Initial status message
 		resultChan <- "Starting tunnel setup...\n"
 
-		// Create new cancellation context for this connection
-		tunnelCtx, cancel := context.WithCancel(ctx)
-		Connections[localPort] = ConnectionInfo{
-			Listen: nil, // This will be updated once the listener is set up
-			Cancel: cancel,
-		}
-		ConnMutex.Unlock()
-
 		// The SSH server to connect to. The address can contain a port.
 		sshServer := entry.Server
 		// The username to use when connecting
@@ -142,6 +137,17 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		// The remote host and port to forward traffic to
 		remoteAddress := fmt.Sprintf("%s:%d", entry.RemoteHost, entry.RemotePort)
 		localAddress := fmt.Sprintf("%s:%d", "127.0.0.1", localPort)
+
+		// Create new cancellation context for this connection
+		tunnelCtx, cancel := context.WithCancel(ctx)
+		Connections[localPort] = ConnectionInfo{
+			Listen:     nil, // This will be updated once the listener is set up
+			Cancel:     cancel,
+			RemoteAddr: remoteAddress,
+			LocalAddr:  localAddress,
+			Config:     entry,
+		}
+		ConnMutex.Unlock()
 
 		// Check if the ssh server address specifies a port. And use 22 if not.
 		_, _, err := net.SplitHostPort(sshServer)
@@ -240,7 +246,7 @@ func startTunneling(ctx context.Context, entry configmanager.Entry, localPort in
 		for {
 			select {
 			case <-tunnelCtx.Done():
-			case <- shutdown:
+			case <-shutdown:
 				// If we're done, ensure we close the listener if it's not nil.
 				if localListener != nil {
 					ConnMutex.Lock()

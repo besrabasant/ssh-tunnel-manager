@@ -23,7 +23,9 @@ func KillTunnelTask(ctx context.Context, req *rpc.KillTunnelRequest) (*rpc.KillT
 			connInfo.StopListening()
 			connInfo.KillAllConns()
 		}
-		output.WriteString(fmt.Sprint("Tunnel stopped", int(req.LocalPort), "\n"))
+		output.WriteString(fmt.Sprintf("\nTunneling stopped %q <==> %q through %q\n", connInfo.LocalAddr, connInfo.RemoteAddr, connInfo.Config.Server))
+
+		delete(Connections, int(req.LocalPort))
 	} else {
 		output.WriteString(fmt.Sprint("Did not find any connection on port ", int(req.LocalPort), "\n"))
 	}
