@@ -27,19 +27,22 @@ func (s *server) KillTunnel(ctx context.Context, req *rpc.KillTunnelRequest) (*r
 	return tasks.KillTunnelTask(ctx, req)
 }
 
+func (s *server) ListActiveTunnels(ctx context.Context, req *rpc.ListActiveTunnelsRequest) (*rpc.ListActiveTunnelsResponse, error) {
+	return tasks.ListActiveTunnelsTask(ctx, req)
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":"+config.Port)
-
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	
+
 	s := grpc.NewServer()
-	
+
 	rpc.RegisterDaemonServiceServer(s, &server{})
-	
+
 	log.Printf("server listening at %v", lis.Addr())
-	
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
