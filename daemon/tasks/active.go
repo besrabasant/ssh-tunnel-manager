@@ -8,13 +8,13 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 
-func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsRequest) (*rpc.ListActiveTunnelsResponse, error) {
+func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsRequest, manager *TunnelManager) (*rpc.ListActiveTunnelsResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
 
-	if len(Connections) > 0 {
-		for port, conn := range Connections {
+	if len(manager.connections) > 0 {
+		for port, conn := range manager.connections {
 			// config is prented without a new line at its end.
 			writeTunnesToOutput(&output, port, &conn)
 			output.WriteString("\n")

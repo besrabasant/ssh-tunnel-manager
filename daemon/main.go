@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/daemon/tasks"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"google.golang.org/grpc"
 )
@@ -17,7 +18,12 @@ func main() {
 
 	s := grpc.NewServer()
 
-	rpc.RegisterDaemonServiceServer(s, &server{})
+	rpServer := &server{}
+	rpc.RegisterDaemonServiceServer(s, rpServer)
+	
+	m := tasks.NewTunnelManager() 
+	rpServer.RegisterTunnelManger(m)
+	
 
 	log.Printf("server listening at %v", lis.Addr())
 

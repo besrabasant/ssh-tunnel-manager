@@ -10,7 +10,7 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.DeleteConfigurationResponse, error) {
+func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest,  manager *TunnelManager) (*rpc.DeleteConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
@@ -33,7 +33,7 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 	}
 
 	// Check for open connections
-	openConns := Connections.Filter(func(c *ConnectionInfo) bool {
+	openConns := manager.connections.Filter(func(c *ConnectionInfo) bool {
 		return req.Name == c.Config.Name
 	})
 

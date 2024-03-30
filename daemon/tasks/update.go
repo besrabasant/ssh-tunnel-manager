@@ -10,12 +10,12 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
+func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest,  manager *TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
 
-	openConns := Connections.Filter(func(c *ConnectionInfo) bool {
+	openConns := manager.connections.Filter(func(c *ConnectionInfo) bool {
 		return req.Name == c.Config.Name
 	})
 

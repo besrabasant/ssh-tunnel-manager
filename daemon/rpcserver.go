@@ -9,6 +9,11 @@ import (
 
 type server struct {
 	rpc.UnimplementedDaemonServiceServer
+	manager  *tasks.TunnelManager
+}
+
+func (s *server) RegisterTunnelManger(manager *tasks.TunnelManager) {
+	s.manager = manager
 }
 
 func (s *server) ListConfigurations(ctx context.Context, req *rpc.ListConfigurationsRequest) (*rpc.ListConfigurationsResponse, error) {
@@ -20,7 +25,7 @@ func (s *server) FetchConfiguration(ctx context.Context, req *rpc.FetchConfigura
 }
 
 func (s *server) UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
-	return tasks.UpdateConfiguration(ctx, req)
+	return tasks.UpdateConfiguration(ctx, req, s.manager)
 }
 
 func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
@@ -28,18 +33,18 @@ func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfi
 }
 
 func (s *server) DeleteConfiguration(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.DeleteConfigurationResponse, error) {
-	return tasks.DeleteTunnelConfigTask(ctx, req)
+	return tasks.DeleteTunnelConfigTask(ctx, req, s.manager)
 }
 
 // Tunneling
 func (s *server) StartTunnel(ctx context.Context, req *rpc.StartTunnelRequest) (*rpc.StartTunnelResponse, error) {
-	return tasks.StartTunnelTask(ctx, req)
+	return tasks.StartTunnelTask(ctx, req, s.manager)
 }
 
 func (s *server) KillTunnel(ctx context.Context, req *rpc.KillTunnelRequest) (*rpc.KillTunnelResponse, error) {
-	return tasks.KillTunnelTask(ctx, req)
+	return tasks.KillTunnelTask(ctx, req, s.manager)
 }
 
 func (s *server) ListActiveTunnels(ctx context.Context, req *rpc.ListActiveTunnelsRequest) (*rpc.ListActiveTunnelsResponse, error) {
-	return tasks.ListActiveTunnelsTask(ctx, req)
+	return tasks.ListActiveTunnelsTask(ctx, req, s.manager)
 }

@@ -55,3 +55,26 @@ Run `ssh-tunnel-manager install-autocomplete` to enable auto completion.
   2023/02/20 09:19:34 Connected
   2023/02/20 09:19:35 Tunneling "localhost:1234" <==> "my-db.remote.com:5432" through "my-ssh.server.com:22"
   ```
+---
+# SSH Tunnel Manager
+
+Save SSH tunnel configurations and start a tunnel with port forwarding using one of the saved configurations.
+
+## Requirements
+
+## Usage
+
+## Build
+
+## Development Usage
+
+1. **Start daemon** :
+   Run from project root
+    ```bash
+    air
+    ```
+2. **Use Cli** :
+   Run inside **client** directory
+   ```bash
+   go run main.go [command] [--opts]
+   ```
