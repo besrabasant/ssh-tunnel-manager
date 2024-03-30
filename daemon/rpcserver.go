@@ -7,7 +7,6 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 
-
 type server struct {
 	rpc.UnimplementedDaemonServiceServer
 }
@@ -22,6 +21,14 @@ func (s *server) FetchConfiguration(ctx context.Context, req *rpc.FetchConfigura
 
 func (s *server) UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	return tasks.UpdateConfiguration(ctx, req)
+}
+
+func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
+	return tasks.AddConfiguration(ctx, req)
+}
+
+func (s *server) DeleteConfiguration(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.DeleteConfigurationResponse, error) {
+	return tasks.DeleteTunnelConfigTask(ctx, req)
 }
 
 // Tunneling

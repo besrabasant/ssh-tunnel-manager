@@ -40,7 +40,7 @@ Edit a configuration.
 		}
 		defer cleanup()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		r, err := c.FetchConfiguration(ctx, &rpc.FetchConfigurationRequest{Name: configName})
@@ -58,6 +58,7 @@ Edit a configuration.
 
 		data := r.GetData()
 		defaultFieldWidth := 40
+		cancel()
 
 		app := tview.NewApplication()
 
@@ -131,7 +132,7 @@ Edit a configuration.
 				},
 				func(text string) {
 					port, err := strconv.Atoi(text)
-					if err != nil {
+					if err == nil {
 						data.RemotePort = int32(port)
 					}
 				},
@@ -140,7 +141,10 @@ Edit a configuration.
 				
 				app.Stop()
 
-				r, err := c.UpdateConfiguration(ctx, &rpc.AddOrUpdateConfigurationRequest{Name: configName, Data: data})
+				updateCtx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+
+				r, err := c.UpdateConfiguration(updateCtx, &rpc.AddOrUpdateConfigurationRequest{Name: configName, Data: data})
 				if err != nil {
 					fmt.Printf("could not execute command: %v", err)
 					return

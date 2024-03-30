@@ -13,7 +13,7 @@ import (
 
 	"github.com/besrabasant/ssh-tunnel-manager/cmd/add"
 	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
-	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
+	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 	"golang.org/x/crypto/ssh"
 )
@@ -76,7 +76,7 @@ var (
 	shutdown = make(chan struct{}) // Signal for shutdown
 )
 
-func StartTunnelTask(ctx context.Context, req *pb.StartTunnelRequest) (*pb.StartTunnelResponse, error) {
+func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest) (*rpc.StartTunnelResponse, error) {
 	var output strings.Builder
 
 	dirpath := configmanager.DefaultConfigDir
@@ -92,6 +92,24 @@ func StartTunnelTask(ctx context.Context, req *pb.StartTunnelRequest) (*pb.Start
 	cfg, err := configmanager.NewManager(configdir).GetConfiguration(req.ConfigName)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get configuration %q: %v", req.ConfigName, err)
+	}
+
+	// Check for open connections
+	
+	if len(Connections) > 0 {
+
+		portBusy := false 
+		for port := range Connections {
+			if(port == int(req.LocalPort)) {
+				portBusy = true
+				break
+			}
+		}
+
+		if(portBusy) {	
+			output.WriteString(fmt.Sprint("\nCannot start tunnel as connection is open on port ", req.LocalPort, "\n"))
+			return &rpc.StartTunnelResponse{Result: output.String()}, nil
+		}
 	}
 
 	resultChan, errorChan := startTunneling(ctx, cfg, int(req.LocalPort))
@@ -117,7 +135,7 @@ loop:
 		}
 	}
 
-	return &pb.StartTunnelResponse{Result: output.String()}, nil
+	return &rpc.StartTunnelResponse{Result: output.String()}, nil
 }
 
 func startTunneling(ctx context.Context, entry configmanager.Entry, localPort int) (<-chan string, <-chan error) {
