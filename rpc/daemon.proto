@@ -22,6 +22,21 @@ service DaemonService {
   rpc ListActiveTunnels (ListActiveTunnelsRequest) returns (ListActiveTunnelsResponse) {}
 }
 
+message TunnelConfig {
+  string name = 1;
+  string description = 2;
+  string server = 3;
+  string user = 4;
+  string key_file = 5;
+  string remote_host = 6;
+  int32 remote_port = 7;
+}
+
+enum ResponseStatus {
+  Success = 0;
+  Error = 1;
+}
+
 message ListConfigurationsRequest {
   string search_pattern = 1;
 }
@@ -32,12 +47,7 @@ message ListConfigurationsResponse {
 
 message AddOrUpdateConfigurationRequest {
   string name = 1;
-  string description = 2;
-  string server = 3;
-  string user = 4;
-  string key_file = 5;
-  string remote_host = 6;
-  int32 remote_port = 7;
+  TunnelConfig data = 2;
 }
 
 message AddOrUpdateConfigurationResponse {
@@ -50,7 +60,9 @@ message FetchConfigurationRequest {
 }
 
 message FetchConfigurationResponse {
-  string result = 1;
+  ResponseStatus status = 1;
+  string message = 2;
+  TunnelConfig data = 3;
 }
 
 message DeleteConfigurationRequest {

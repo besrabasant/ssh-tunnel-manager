@@ -19,6 +19,10 @@ func (s *server) ListConfigurations(ctx context.Context, req *rpc.ListConfigurat
 	return tasks.ListConfigurationTask(ctx, req)
 }
 
+func (s *server) FetchConfiguration(ctx context.Context, req *rpc.FetchConfigurationRequest) (*rpc.FetchConfigurationResponse, error) {
+	return tasks.FetchTunnelConfigTask(ctx, req)
+}
+
 func (s *server) StartTunnel(ctx context.Context, req *rpc.StartTunnelRequest) (*rpc.StartTunnelResponse, error) {
 	return tasks.StartTunnelTask(ctx, req)
 }
