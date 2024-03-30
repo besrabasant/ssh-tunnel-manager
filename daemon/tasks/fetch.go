@@ -20,6 +20,18 @@ func convertConfigToRpcTunnelConfig(cfg *configmanager.Entry) *rpc.TunnelConfig 
 	}
 }
 
+func convertRpcTunnelConfigToConfig(cfg *rpc.TunnelConfig) *configmanager.Entry {
+	return &configmanager.Entry{
+		Name:        cfg.Name,
+		Description: cfg.Description,
+		Server:      cfg.Server,
+		User:        cfg.User,
+		KeyFile:     cfg.KeyFile,
+		RemoteHost:  cfg.RemoteHost,
+		RemotePort:  int(cfg.RemotePort),
+	}
+}
+
 func FetchTunnelConfigTask(ctx context.Context, req *rpc.FetchConfigurationRequest) (*rpc.FetchConfigurationResponse, error) {
 	cfgs, err := getConfigs()
 	if err != nil {

@@ -190,3 +190,18 @@ func (m *manager) EditConfiguration(entryName string, editor editor.Editor) erro
 
 	return nil
 }
+
+
+func (m *manager) UpdateConfiguration(entry Entry) error {
+
+	file, err := json.MarshalIndent(entry, "", " ")
+	if err != nil {
+		return fmt.Errorf("couldn't marshal entry %v to JSON: %v", entry, err)
+	}
+	filename := filepath.Join(m.dir, entry.Name+".json")
+	err = os.WriteFile(filename, file, 0644)
+	if err != nil {
+		return fmt.Errorf("couldn't write file %s: %v", filename, err)
+	}
+	return nil
+}

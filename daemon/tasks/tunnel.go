@@ -52,9 +52,24 @@ func (c *ConnectionInfo) KillAllConns() {
 	}
 }
 
+type SSHConns map[int]ConnectionInfo
+
+func (c SSHConns) Filter(predicate func(*ConnectionInfo) bool) SSHConns {
+	filteredConns := make(SSHConns, 0)
+
+	for port, entry := range c {
+		entry := entry
+		if predicate(&entry) {
+			filteredConns[port] = entry
+		}
+	}
+
+	return filteredConns
+}
+
 var (
 	// Map to keep track of Connections by their local port
-	Connections = make(map[int]ConnectionInfo)
+	Connections = make(SSHConns)
 	// Mutex to protect access to the connections map
 	ConnMutex = &sync.Mutex{}
 

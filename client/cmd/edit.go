@@ -76,7 +76,7 @@ Edit a configuration.
 				},
 			).
 			AddTextArea("Description", data.Description, 40, 0, 0, func(text string) {
-				data.Name = text
+				data.Description = text
 			}).
 			AddInputField(
 				"Server",
