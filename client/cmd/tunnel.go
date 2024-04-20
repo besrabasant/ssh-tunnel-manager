@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/* Release 1.0 */
-
 var StartSshTunnelCmd = &cobra.Command{
 	Use:           "tunnel <configuration name>",
 	Short:         "Start a tunnel using a configuration. The tunnel will forward connections to [local port] if specified or to a random port.",

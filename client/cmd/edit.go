@@ -15,7 +15,6 @@ import (
 
 var EditConfigurationsCmd = &cobra.Command{
 	Use:     "edit",
-	Aliases: []string{"l", "ls"},
 	Short:   "Edit a configuration",
 	Long: `
 Edit a configuration.

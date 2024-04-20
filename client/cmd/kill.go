@@ -13,7 +13,6 @@ import (
 
 var KillSshTunnelCmd = &cobra.Command{
 	Use:     "kill",
-	Aliases: []string{"l", "ls"},
 	Short:   "Kill a ssh tunnel",
 	Long: `
 Kill a ssh tunnel.
