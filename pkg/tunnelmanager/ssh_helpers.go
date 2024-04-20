@@ -37,5 +37,5 @@ func runTunnel(local, remote net.Conn) {
 	}()
 
 	<-done
-	log.Printf("\nConnection closed: %s\n\n", local.RemoteAddr())
+	log.Printf("Connection closed: %s", local.RemoteAddr())
 }
