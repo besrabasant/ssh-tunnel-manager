@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/besrabasant/ssh-tunnel-manager/editor"
 )
 
 // DefaultConfigDir is the default directory where configurations are saved
@@ -73,7 +71,6 @@ type ConfigManager interface {
 	GetConfigurations() ([]Entry, error)
 	AddConfiguration(entry Entry) error
 	RemoveConfiguration(entryName string) error
-	EditConfiguration(entryName string, editor editor.Editor) error
 }
 
 type manager struct {
@@ -158,39 +155,6 @@ func (m *manager) GetConfiguration(entryName string) (Entry, error) {
 	}
 	return entry, nil
 }
-
-func (m *manager) EditConfiguration(entryName string, editor editor.Editor) error {
-	filename := filepath.Join(m.dir, entryName+".json")
-	byteValue, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("couldn't read file %q: %v", filename, err)
-	}
-
-	newContent, err := editor.Edit(byteValue)
-	if err != nil {
-		return err
-	}
-
-	var newEntry Entry
-	if err := json.Unmarshal(newContent, &newEntry); err != nil {
-		return fmt.Errorf("new content isn't a valid entry: %v", err)
-	}
-
-	if err := newEntry.Validate(); err != nil {
-		return err
-	}
-
-	if err := m.RemoveConfiguration(entryName); err != nil {
-		return fmt.Errorf("error removing the old configuration: %v", err)
-	}
-
-	if err := m.AddConfiguration(newEntry); err != nil {
-		return fmt.Errorf("error adding the new configuration: %v", err)
-	}
-
-	return nil
-}
-
 
 func (m *manager) UpdateConfiguration(entry Entry) error {
 

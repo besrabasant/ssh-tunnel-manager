@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/besrabasant/ssh-tunnel-manager/cmd/add"
+	"github.com/besrabasant/ssh-tunnel-manager/config"
 	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
@@ -17,7 +17,7 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 	manager.createResultChannels()
 
 	dirpath := configmanager.DefaultConfigDir
-	if value := os.Getenv(add.ConfigDirFlagName); value != "" {
+	if value := os.Getenv(config.ConfigDirFlagName); value != "" {
 		dirpath = value
 	}
 
