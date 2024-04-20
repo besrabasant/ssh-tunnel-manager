@@ -16,15 +16,14 @@ Save SSH tunnel configurations and start a tunnel with port forwarding using one
 
 ```sh
 make
+
+./install.sh
 ```
-
-- Use install script file to add binaries to local bin directory
-- Use intall script to create service file
-- 
-
 ## Usage
 
-
+```
+sshtm [command]
+```
 
 
 ## Development Usage
