@@ -7,16 +7,17 @@ import (
 	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *TunnelManager) (*rpc.StartTunnelResponse, error) {
+func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *tunnelmanager.TunnelManager) (*rpc.StartTunnelResponse, error) {
 	var output strings.Builder
-	manager.createResultChannels()
+	manager.CreateResultChannels()
 
-	dirpath := configmanager.DefaultConfigDir
+	dirpath := config.DefaultConfigDir
 	if value := os.Getenv(config.ConfigDirFlagName); value != "" {
 		dirpath = value
 	}
@@ -33,10 +34,10 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 
 	// Check for open connections
 
-	if len(manager.connections) > 0 {
+	if len(manager.Connections) > 0 {
 
 		portBusy := false
-		for port := range manager.connections {
+		for port := range manager.Connections {
 			if port == int(req.LocalPort) {
 				portBusy = true
 				break
@@ -49,14 +50,14 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 		}
 	}
 
-	go manager.startTunneling(context.Background(), cfg, int(req.LocalPort))
+	go manager.StartTunneling(context.Background(), cfg, int(req.LocalPort))
 
 	var errReceived bool = false
 
 loop:
 	for {
 		select {
-		case result, ok := <-manager.resultChan:
+		case result, ok := <-manager.ResultChan:
 			if !ok {
 				if !errReceived {
 					output.WriteString("Tunnel setup completed.\n")
@@ -65,7 +66,7 @@ loop:
 			}
 			output.WriteString(result + "\n")
 
-		case err, ok := <-manager.errorChan:
+		case err, ok := <-manager.ErrChan:
 			if ok && err != nil { // Check if error is not nil
 				output.WriteString(fmt.Sprintf("Failed to start tunneling: %v\n", err))
 				errReceived = true
@@ -75,4 +76,3 @@ loop:
 
 	return &rpc.StartTunnelResponse{Result: output.String()}, nil
 }
-

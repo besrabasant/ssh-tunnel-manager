@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest,  manager *TunnelManager) (*rpc.DeleteConfigurationResponse, error) {
+func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest,  manager *tunnelmanager.TunnelManager) (*rpc.DeleteConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
@@ -33,7 +35,7 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 	}
 
 	// Check for open connections
-	openConns := manager.connections.Filter(func(c *ConnectionInfo) bool {
+	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
 		return req.Name == c.Config.Name
 	})
 
@@ -48,7 +50,7 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 		return &rpc.DeleteConfigurationResponse{Result: output.String()}, nil
 	}
 
-	configdir, err := utils.ResolveDir(configmanager.DefaultConfigDir)
+	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
 		return nil, err
 	}

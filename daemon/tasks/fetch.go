@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 

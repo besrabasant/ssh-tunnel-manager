@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/besrabasant/ssh-tunnel-manager/daemon/tasks"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 
 type server struct {
 	rpc.UnimplementedDaemonServiceServer
-	manager  *tasks.TunnelManager
+	manager  *tunnelmanager.TunnelManager
 }
 
-func (s *server) RegisterTunnelManger(manager *tasks.TunnelManager) {
+func (s *server) RegisterTunnelManger(manager *tunnelmanager.TunnelManager) {
 	s.manager = manager
 }
 

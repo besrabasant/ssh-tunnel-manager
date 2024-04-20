@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest,  manager *TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
+func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest,  manager *tunnelmanager.TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
 
-	openConns := manager.connections.Filter(func(c *ConnectionInfo) bool {
+	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
 		return req.Name == c.Config.Name
 	})
 
@@ -30,7 +32,7 @@ func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationR
 		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
 	}
 
-	configdir, err := utils.ResolveDir(configmanager.DefaultConfigDir)
+	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
 		return nil, err
 	}

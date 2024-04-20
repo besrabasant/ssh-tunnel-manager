@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 
-func KillTunnelTask(ctx context.Context, req *rpc.KillTunnelRequest, manager *TunnelManager) (*rpc.KillTunnelResponse, error) {
+func KillTunnelTask(ctx context.Context, req *rpc.KillTunnelRequest, manager *tunnelmanager.TunnelManager) (*rpc.KillTunnelResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
 
-	if connInfo, exists := manager.connections[int(req.LocalPort)]; exists {
+	if connInfo, exists := manager.Connections[int(req.LocalPort)]; exists {
 		output.WriteString(fmt.Sprint("Closing existing connection on port ", int(req.LocalPort), "\n"))
 
 		// If there's an existing connection on the same port, close it

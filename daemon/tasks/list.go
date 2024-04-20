@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -15,7 +15,7 @@ import (
 
 
 func getConfigs() ([]configmanager.Entry, error) {
-	dirpath := configmanager.DefaultConfigDir
+	dirpath := config.DefaultConfigDir
 	if value := os.Getenv(config.ConfigDirFlagName); value != "" {
 		dirpath = value
 	}

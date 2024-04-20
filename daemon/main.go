@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
-	"github.com/besrabasant/ssh-tunnel-manager/daemon/tasks"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"google.golang.org/grpc"
 )
@@ -21,7 +21,7 @@ func main() {
 	rpServer := &server{}
 	rpc.RegisterDaemonServiceServer(s, rpServer)
 	
-	m := tasks.NewTunnelManager() 
+	m := tunnelmanager.NewTunnelManager() 
 	rpServer.RegisterTunnelManger(m)
 	
 

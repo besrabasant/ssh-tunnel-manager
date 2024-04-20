@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/besrabasant/ssh-tunnel-manager/configmanager"
+	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
@@ -28,7 +29,7 @@ func AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequ
 	}
 
 
-	configdir, err := utils.ResolveDir(configmanager.DefaultConfigDir)
+	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
 		return nil, err
 	}
