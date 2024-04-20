@@ -8,6 +8,7 @@ import (
 
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
+	"github.com/besrabasant/ssh-tunnel-manager/utils"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
@@ -133,6 +134,20 @@ Edit a configuration.
 					port, err := strconv.Atoi(text)
 					if err == nil {
 						data.RemotePort = int32(port)
+					}
+				},
+			).
+			AddInputField(
+				"Local Port",
+				utils.IntToString(int(data.LocalPort)),
+				defaultFieldWidth,
+				func(textToCheck string, lastChar rune) bool {
+					return true
+				},
+				func(text string) {
+					port, err := strconv.Atoi(text)
+					if err == nil {
+						data.LocalPort = int32(port)
 					}
 				},
 			).

@@ -34,7 +34,7 @@ func AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequ
 		return nil, err
 	}
 
-	err = configmanager.NewManager(configdir).AddConfiguration(*convertRpcTunnelConfigToConfig(req.Data))
+	err = configmanager.NewManager(configdir).AddConfiguration(*configmanager.ConvertRpcTunnelConfigToConfig(req.Data))
 	if err != nil {
 		output.WriteString(fmt.Sprintf("Cannot add configuration %s: %v", req.Name, err))
 		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil

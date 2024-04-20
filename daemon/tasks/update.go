@@ -12,7 +12,7 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest,  manager *tunnelmanager.TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
+func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest, manager *tunnelmanager.TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
@@ -37,7 +37,7 @@ func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationR
 		return nil, err
 	}
 
-	err = configmanager.NewManager(configdir).UpdateConfiguration(*convertRpcTunnelConfigToConfig(req.Data))
+	err = configmanager.NewManager(configdir).UpdateConfiguration(*configmanager.ConvertRpcTunnelConfigToConfig(req.Data))
 	if err != nil {
 		output.WriteString(fmt.Sprintf("Cannot update configuration %s: %v", req.Name, err))
 		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil

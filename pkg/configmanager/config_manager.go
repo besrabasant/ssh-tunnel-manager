@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 // Entry is an SSH configuration entry
 type Entry struct {
 	Name        string
@@ -20,6 +19,7 @@ type Entry struct {
 	KeyFile     string
 	RemoteHost  string
 	RemotePort  int
+	LocalPort  	int
 }
 
 type Entries []Entry

@@ -13,7 +13,6 @@ import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
 )
 
-
 func getConfigs() ([]configmanager.Entry, error) {
 	dirpath := config.DefaultConfigDir
 	if value := os.Getenv(config.ConfigDirFlagName); value != "" {
@@ -80,14 +79,14 @@ func ListConfigurationTask(ctx context.Context, req *pb.ListConfigurationsReques
 	return &pb.ListConfigurationsResponse{Result: output.String()}, nil
 }
 
-
 func writeConfigToOutput(out *strings.Builder, entry configmanager.Entry) {
 	template := `%s
-  - SSH server:  %s
-  - User:        %s
-  - Private key: %s
-  - Remote:      %s:%d`
-	nameAndDesc := bold(entry.Name)
+  - SSH server:  		%s
+  - User:        		%s
+  - Private key: 		%s
+  - Remote:      		%s:%d
+  - Default Local Port:		%s`
+	nameAndDesc := utils.Bold(entry.Name)
 	if strings.TrimSpace(entry.Description) != "" {
 		nameAndDesc += " " + "(" + entry.Description + ")"
 	}
@@ -100,9 +99,6 @@ func writeConfigToOutput(out *strings.Builder, entry configmanager.Entry) {
 			entry.KeyFile,
 			entry.RemoteHost,
 			entry.RemotePort,
+			utils.IntToString(entry.LocalPort),
 		)))
-}
-
-func bold(str string) string {
-	return "\x1b[1m" + str + "\x1b[0m"
 }

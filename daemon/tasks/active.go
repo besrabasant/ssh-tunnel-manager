@@ -7,6 +7,7 @@ import (
 
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
+	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
 func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsRequest, manager *tunnelmanager.TunnelManager) (*rpc.ListActiveTunnelsResponse, error) {
@@ -17,7 +18,7 @@ func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsReques
 	if len(manager.Connections) > 0 {
 		for port, conn := range manager.Connections {
 			// config is prented without a new line at its end.
-			writeTunnesToOutput(&output, port, &conn)
+			writeTunnelsToOutput(&output, port, &conn)
 			output.WriteString("\n")
 		}
 	} else {
@@ -27,14 +28,14 @@ func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsReques
 	return &rpc.ListActiveTunnelsResponse{Result: output.String()}, nil
 }
 
-func writeTunnesToOutput(out *strings.Builder, port int, conn *tunnelmanager.ConnectionInfo) {
+func writeTunnelsToOutput(out *strings.Builder, port int, conn *tunnelmanager.ConnectionInfo) {
 	template := `:%s
  - Connection:     		%s
  - Remote Address: 		%s
  - Local Address:		%s
  - SSH server:			%s
 `
-	portStr := bold(fmt.Sprint(port))
+	portStr := utils.Bold(fmt.Sprint(port))
 	out.Write([]byte(
 		fmt.Sprintf(
 			template,

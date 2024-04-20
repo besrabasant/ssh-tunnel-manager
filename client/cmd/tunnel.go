@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net"
 	"strconv"
 	"time"
 
@@ -37,23 +36,13 @@ var StartSshTunnelCmd = &cobra.Command{
 			localPortStr = args[1]
 		}
 
-		if localPortStr == "" {
-			// Generate random port
-			randomPort, err := generateRandomPort()
-			if err != nil {
-				fmt.Printf("couldn't generate a random port: %v", err)
-				return
-			}
-			localPort = randomPort
-		} else {
-			// Parse given port
-			localPortInt, err := strconv.Atoi(localPortStr)
-			if err != nil {
-				fmt.Printf("provided local port %q is not a valid port", localPortStr)
-				return
-			}
-			localPort = localPortInt
+		// Parse given port
+		localPortInt, err := strconv.Atoi(localPortStr)
+		if err != nil {
+			// If no local port provided set as -1
+			localPortInt = -1
 		}
+		localPort = localPortInt
 
 		c, cleanup, err := lib.CreateDaemonServiceClient()
 		if err != nil {
@@ -64,42 +53,14 @@ var StartSshTunnelCmd = &cobra.Command{
 
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
-		
+
 		r, err := c.StartTunnel(ctx, &pb.StartTunnelRequest{ConfigName: configName, LocalPort: int32(localPort)})
-		
 		if err != nil {
 			fmt.Printf("could not execute command: %v", err)
 			return
 		}
-		
+
 		fmt.Printf("%s", r.GetResult())
 	},
 }
 
-func generateRandomPort() (int, error) {
-	// Listen on port 0 to bind to a random available port
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return 0, err
-	}
-
-	// Extract the port number from the listener address
-	_, port, err := net.SplitHostPort(listener.Addr().String())
-	if err != nil {
-		return 0, err
-	}
-
-	// Convert the port number to an integer
-	randomPort, err := net.LookupPort("tcp", port)
-	if err != nil {
-		return 0, err
-	}
-
-	// Close the listener
-	err = listener.Close()
-	if err != nil {
-		return 0, err
-	}
-
-	return randomPort, nil
-}

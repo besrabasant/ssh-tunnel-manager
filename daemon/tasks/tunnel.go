@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -32,8 +33,23 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 		return nil, fmt.Errorf("couldn't get configuration %q: %v", req.ConfigName, err)
 	}
 
-	// Check for open connections
+	localPort := req.LocalPort
 
+	if localPort == -1 {
+
+		localPort = int32(cfg.LocalPort)
+	}
+
+	if localPort == 0 {
+		// Generate random port
+		randomPort, err := generateRandomPort()
+		if err != nil {
+			return nil, fmt.Errorf("couldn't generate a random port: %v", err)
+		}
+		localPort = int32(randomPort)
+	}
+
+	// Check for open connections
 	if len(manager.Connections) > 0 {
 
 		portBusy := false
@@ -45,12 +61,12 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 		}
 
 		if portBusy {
-			output.WriteString(fmt.Sprint("\nCannot start tunnel as connection is open on port ", req.LocalPort, "\n"))
+			output.WriteString(fmt.Sprint("\nCannot start tunnel as connection is already open on port ", req.LocalPort, "\n"))
 			return &rpc.StartTunnelResponse{Result: output.String()}, nil
 		}
 	}
 
-	go manager.StartTunneling(context.Background(), cfg, int(req.LocalPort))
+	go manager.StartTunneling(context.Background(), cfg, int(localPort))
 
 	var errReceived bool = false
 
@@ -75,4 +91,32 @@ loop:
 	}
 
 	return &rpc.StartTunnelResponse{Result: output.String()}, nil
+}
+
+func generateRandomPort() (int, error) {
+	// Listen on port 0 to bind to a random available port
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
+	}
+
+	// Extract the port number from the listener address
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		return 0, err
+	}
+
+	// Convert the port number to an integer
+	randomPort, err := net.LookupPort("tcp", port)
+	if err != nil {
+		return 0, err
+	}
+
+	// Close the listener
+	err = listener.Close()
+	if err != nil {
+		return 0, err
+	}
+
+	return randomPort, nil
 }

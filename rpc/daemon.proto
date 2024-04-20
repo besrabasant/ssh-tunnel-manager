@@ -30,6 +30,7 @@ message TunnelConfig {
   string key_file = 5;
   string remote_host = 6;
   int32 remote_port = 7;
+  int32 local_port = 8;
 }
 
 enum ResponseStatus {
