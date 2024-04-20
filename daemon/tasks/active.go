@@ -18,11 +18,11 @@ func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsReques
 	if len(manager.Connections) > 0 {
 		for port, conn := range manager.Connections {
 			// config is prented without a new line at its end.
-			writeTunnelsToOutput(&output, port, &conn)
+			writeTunnelsToOutput(&output, port, conn)
 			output.WriteString("\n")
 		}
 	} else {
-		output.WriteString("\nNo active connections found.\n")
+		output.WriteString("No active connections found.\n")
 	}
 
 	return &rpc.ListActiveTunnelsResponse{Result: output.String()}, nil

@@ -17,7 +17,7 @@ import (
 
 // TunnelManager manages multiple SSH tunnels
 type TunnelManager struct {
-	mutex       sync.Mutex
+	Mutex       sync.Mutex
 	Connections SSHConnections
 	shutdown    chan struct{}
 	ResultChan  chan string
@@ -27,7 +27,7 @@ type TunnelManager struct {
 func NewTunnelManager() *TunnelManager {
 	return &TunnelManager{
 		Connections: make(SSHConnections),
-		mutex:       sync.Mutex{},
+		Mutex:       sync.Mutex{},
 		shutdown:    make(chan struct{}),
 	}
 }
@@ -43,7 +43,7 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	defer close(m.ErrChan)
 
 	// Enable lock
-	m.mutex.Lock()
+	m.Mutex.Lock()
 
 	// Close Existing connections
 	if connInfo, exists := m.Connections[localPort]; exists {
@@ -53,7 +53,7 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 		connInfo.Cancel() // Cancel the context of the existing connection
 		if connInfo.Listener != nil {
 			connInfo.StopListeners()
-			connInfo.KillAllConnections()
+			connInfo.ClearConnection()
 		}
 	}
 
@@ -72,7 +72,7 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 
 	// Create new cancellation context for this connection
 	tunnelCtx, cancel := context.WithCancel(ctx)
-	m.Connections[localPort] = ConnectionInfo{
+	m.Connections[localPort] = &ConnectionInfo{
 		Listener:   nil, // This will be updated once the listener is set up
 		Cancel:     cancel,
 		RemoteAddr: remoteAddress,
@@ -158,72 +158,84 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	currentConnInfo.Listener = listener
 	m.Connections[localPort] = currentConnInfo
 
-	m.mutex.Unlock()
+	m.Mutex.Unlock()
 
 	m.ResultChan <- "Local listener set up, ready to accept connections.\n"
-
-	// Handle server shutdown triggered by signal or context cancellation
-	go m.handleServerShutdown(ctx, tunnelCtx, localPort)
 
 	// Start accepting connections on the local listener
 	m.ResultChan <- fmt.Sprintf("Tunneling %q <==> %q through %q\n", localAddress, remoteAddress, sshServer)
 
 	// Handle incoming connections on local port
-	go m.forwardTunnel(remoteAddress, localPort)
-}
-
-func (m *TunnelManager) handleServerShutdown(ctx context.Context, tunnelCtx context.Context, localPort int) {
-	currentConnInfo := m.Connections[localPort]
-
-	select {
-	case <-tunnelCtx.Done():
-	case <-m.shutdown:
-		// If we're done, ensure we close the listener if it's not nil.
-		if currentConnInfo.Client != nil {
-			m.mutex.Lock()
-			currentConnInfo.StopListeners()
-			currentConnInfo.KillAllConnections()
-			currentConnInfo.StopClient()
-			delete(m.Connections, localPort)
-			m.mutex.Unlock()
-		}
-	case <-ctx.Done():
-		// Additional cleanup if needed
-	}
+	go m.forwardTunnel(ctx, tunnelCtx, remoteAddress, localPort)
 }
 
 // forwardTunnel handles incoming connections on the local port and forwards them to the remote server
-func (m *TunnelManager) forwardTunnel(remoteAddress string, localPort int) {
-	currentConnInfo := m.Connections[localPort]
+func (m *TunnelManager) forwardTunnel(ctx context.Context, tunnelCtx context.Context, remoteAddress string, localPort int) {
+	m.Mutex.Lock()
+	currentConnInfo, exists := m.Connections[localPort]
+	m.Mutex.Unlock()
+	
+	if !exists || currentConnInfo.Listener == nil {
+		log.Println("No listener found, returning")
+		return
+	}
 
 	for {
-		if currentConnInfo.Listener == nil {
-			log.Printf("Unexpected error: localListener is nil")
+		select {
+		case <-m.shutdown:
+			m.Mutex.Lock()
+			for _, connInfo := range m.Connections {
+				if connInfo.Client != nil {
+					connInfo.ClearConnection()
+				}
+			}
+			m.Connections = make(SSHConnections) // Clear all connections
+			m.Mutex.Unlock()
 			return
-		}
-		localConn, err := currentConnInfo.Listener.Accept()
-		if err != nil {
-			log.Printf("Failed to accept local connection: %v", err)
-			continue
-		}
 
-		m.mutex.Lock()
-		currentConnInfo := m.Connections[localPort]
-		currentConnInfo.AddConnection(localConn)
-		m.Connections[localPort] = currentConnInfo
-		m.mutex.Unlock()
-
-		// Start the SSH tunnel for each incoming connection
-		go func(localConn net.Conn) {
-			remoteConn, err := currentConnInfo.Client.Dial("tcp", remoteAddress)
-			if err != nil {
-				log.Printf("error dialing remote address %s: %v", remoteAddress, err)
-				localConn.Close()
+		case <-tunnelCtx.Done():
+			m.Mutex.Lock()
+			currentConnInfo.Cancel()
+			delete(m.Connections, localPort)
+			m.Mutex.Unlock()
+			return // Exit the loop and goroutine
+		case <-ctx.Done():
+			// Additional cleanup if needed
+			return // Usually signifies the parent context was cancelled
+		default:
+			m.Mutex.Lock()
+			if currentConnInfo.Listener == nil {
+				m.Mutex.Unlock()
+				log.Printf("Listener is not available or connection info does not exist for port %d", localPort)
 				return
 			}
+			m.Mutex.Unlock()
 
-			runTunnel(localConn, remoteConn)
-		}(localConn)
+			localConn, err := currentConnInfo.Listener.Accept()
+			if err != nil {
+				// If we receive an error due to the listener being closed, gracefully exit the loop
+				if errors.Is(err, net.ErrClosed) {
+					break
+				}
+				log.Printf("Failed to accept local connection: %v", err)
+				continue
+			}
 
+			m.Mutex.Lock()
+			currentConnInfo.AddConnection(localConn)
+			m.Mutex.Unlock()
+
+			// Start the SSH tunnel for each incoming connection
+			go func(localConn net.Conn) {
+				remoteConn, err := currentConnInfo.Client.Dial("tcp", remoteAddress)
+				if err != nil {
+					log.Printf("error dialing remote address %s: %v", remoteAddress, err)
+					localConn.Close()
+					return
+				}
+
+				runTunnel(localConn, remoteConn)
+			}(localConn)
+		}
 	}
 }
