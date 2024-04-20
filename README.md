@@ -12,19 +12,23 @@ Save SSH tunnel configurations and start a tunnel with port forwarding using one
 ## Requirements
 
 
-## Build
+## Build & Install
 
 ```sh
-make
-
 ./install.sh
 ```
+
+
+## Uninstall 
+```sh
+~/.local/share/sshtm/scripts/uninstall.sh
+```
+
 ## Usage
 
 ```
 sshtm [command]
 ```
-
 
 ## Development Usage
 
