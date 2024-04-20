@@ -1,29 +1,29 @@
 #!/bin/bash
 
-# Ensure the script is run as root
-if [ "$(id -u)" -ne 0 ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
+make
 
-mv sshtmd /usr/local/bin
-mv sshtm /usr/local/bin
+mkdir -p $HOME/.config/systemd/user
+mkdir -p $HOME/.local/share/sshtm
+
+mv sshtmd $HOME/.local/bin
+mv sshtm $HOME/.local/bin
+cp -r scripts $HOME/.local/share/sshtm
 
 # Optional: Set up the application as a system service (for systems using systemd)
-cat <<EOF > /etc/systemd/system/sshtmd.service
+cat <<EOF > $HOME/.config/systemd/user/sshtmd.service
 [Unit]
 Description=SSH Tunnnel manager Daemon
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/sshtmd
+ExecStart=$HOME/.local/bin/sshtmd
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 EOF
 
-systemctl daemon-reload
+systemctl --user daemon-reload
 
 # Enable and start the service
-systemctl enable sshtmd
-systemctl start sshtmd
+systemctl --user enable sshtmd
+systemctl --user start sshtmd
