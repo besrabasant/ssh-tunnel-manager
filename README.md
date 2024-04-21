@@ -2,6 +2,13 @@
 
 SSH Tunnel Manager (**sshtm**) allows you to manage SSH tunnel configurations for easy setup and use of port forwarding via SSH.
 
+## Current Version
+
+**SSH Tunnel Manager (sshtm) v1.0.0**
+
+Ensure you are using the latest version to benefit from the newest features and improvements.
+
+
 ## Features
 
 - **Save Configuration**: Store SSH tunnel configurations including descriptions for later use.
@@ -60,7 +67,7 @@ Below is the list of available commands in **sshtm**, with descriptions for each
 | **kill**       | **k**,**terminate** | Terminate an active SSH tunnel.                                                                                                                                     |
 | **help**       |                     | Display help about any command.                                                                                                                                     |
 | **completion** |                     | Generate the autocompletion script for the specified shell.                                                                                                         |
-
+| **version**    |                     | Print the version number of SSH Tunnel Manager                                                                                                                      |
 
 ## Development
 
@@ -79,3 +86,14 @@ Below is the list of available commands in **sshtm**, with descriptions for each
    go run main.go [command] [arguments]
    ```
    Here, **[command]** is one of the commands available and **[arguments]** represents additional arguments that can be passed to the command.
+
+
+## Versioning Policy
+
+We use [Semantic Versioning (SemVer)](https://semver.org/) for our version numbers. Each release increases the version number as follows:
+
+- **MAJOR version** when we make incompatible API changes,
+- **MINOR version** when we add functionality in a backwards compatible manner, and
+- **PATCH version** when we make backwards compatible bug fixes.
+
+This versioning approach helps our users to better plan their upgrades and understand compatibility.
