@@ -13,10 +13,24 @@ import (
 
 var AddConfigurationsCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Add a SSH tunnel configuration",
+	Aliases: []string{"a"},
+	Short: "Add a new SSH tunnel configuration",
 	Long: `
-	Add a SSH tunnel configuration.
-`,
+Add a new SSH tunnel configuration using an interactive form.
+
+This command launches an interactive GUI form that allows you to enter details for a new SSH tunnel configuration, such as the SSH server address, local and remote ports, and any other required tunnel parameters. Once the form is submitted, the configuration is saved, enabling you to use this setup for future SSH tunnel initiations.
+
+The form supports mouse interactions and clipboard operations, enhancing ease of use and efficiency. Use this command to configure new tunnels without manually editing configuration files or directly manipulating database entries.
+
+Features:
+- Interactive form with field validations to guide you through the setup process.
+- Mouse and clipboard support for a better user experience.
+- Immediate feedback on the success or failure of the configuration addition.
+
+Examples:
+- sshtm add
+- sshtm a
+	`,
 	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		c, cleanup, err := lib.CreateDaemonServiceClient()
@@ -49,7 +63,6 @@ var AddConfigurationsCmd = &cobra.Command{
 			fmt.Printf("%s", r.GetResult())
 		})
 
-		
 		if err := app.SetRoot(addForm, true).EnableMouse(true).EnablePaste(true).Run(); err != nil {
 			panic(err)
 		}

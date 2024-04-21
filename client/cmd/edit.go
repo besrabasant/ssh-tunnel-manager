@@ -12,10 +12,19 @@ import (
 )
 
 var EditConfigurationsCmd = &cobra.Command{
-	Use:     "edit",
-	Short:   "Edit a configuration",
+	Use:     "edit <configuration name>",
+	Aliases: []string{"e"},
+	Short:   "Edit an existing SSH tunnel configuration.",
 	Long: `
-Edit a configuration.
+Edit an existing SSH tunnel configuration interactively.
+
+Use this command to modify the details of a saved SSH tunnel configuration, such as changing the local or remote ports, the SSH server, or any other parameter defined in the configuration. This command provides an interactive interface where you can select the configuration you wish to edit and make changes as required.
+
+The command requires the name of the configuration as an argument. If the configuration name is not provided or is incorrect, the command will prompt for the correct name. After selecting a configuration, you will be guided through a series of prompts to update the desired fields.
+
+Example Usage:
+- sshtm edit my_configuration
+- sshtm e my_configuration
 `,
 	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -54,19 +63,18 @@ Edit a configuration.
 		}
 
 		data := r.GetData()
-		
+
 		cancel()
 
 		app := tview.NewApplication()
 
 		formConfig := lib.ConfigurationFormData{
-			Title: "Edit configuration",
-			PrimaryBtnLabel: "Update",
+			Title:             "Edit configuration",
+			PrimaryBtnLabel:   "Update",
 			SecondaryBtnLabel: "Cancel",
 		}
 
 		editForm := lib.ConfigurationForm(formConfig, app, data, func(data *rpc.TunnelConfig) {
-			
 			updateCtx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -79,7 +87,6 @@ Edit a configuration.
 			fmt.Printf("%s", r.GetResult())
 		})
 
-		
 		if err := app.SetRoot(editForm, true).EnableMouse(true).EnablePaste(true).Run(); err != nil {
 			panic(err)
 		}

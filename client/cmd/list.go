@@ -14,10 +14,18 @@ import (
 var ListConfigurationsCmd = &cobra.Command{
 	Use:     "list [search pattern]",
 	Aliases: []string{"l", "ls"},
-	Short:   "List configurations (You can use a pattern to only list the configurations that fuzzy match that pattern)",
+	Short:   "List all SSH tunnel configurations, optionally filtering by a search pattern. (You can use a pattern to only list the configurations that fuzzy match that pattern)",
 	Long: `
-When using it like this "sshtm list prod" it will only list configurations that fuzzy match the word "prod". If you have these configurations (client-prod, client1-stage, otherclient-prod), only (client-prod, otherclient-prod) will be displayed.
-`,
+List all SSH tunnel configurations, with optional fuzzy matching based on a provided search pattern.
+
+This command displays all saved SSH tunnel configurations. If a search pattern is provided as an argument, the command will perform a fuzzy search and only list configurations that match the search term. This feature is useful for quickly finding specific configurations among many, especially when you remember only part of the configuration name or details.
+
+For instance, using 'sshtm list prod' will filter and display configurations that contain the substring 'prod' anywhere in their names or related fields, such as 'client-prod' and 'otherclient-prod'. This makes it easy to manage and access configurations in environments with numerous setups.
+
+Example Usage:
+- sshtm list (Lists all configurations)
+- sshtm list prod (Lists configurations that contain 'prod')
+	`,
 	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		searchPattern := ""

@@ -49,17 +49,17 @@ sshtm [command]
 
 Below is the list of available commands in **sshtm**, with descriptions for each:
 
-| Command    | Description                                                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **list**       | List all configurations. Supports fuzzy matching to filter configurations by a pattern.                                              |
-| **add**        | Add a new SSH tunnel configuration.                                                                                                  |
-| **edit**       | Edit an existing SSH tunnel configuration.                                                                                           |
-| **delete**     | Delete an existing SSH tunnel configuration.                                                                                         |
-| **help**       | Display help about any command.                                                                                                      |
-| **tunnel**     | Start an SSH tunnel using a saved configuration. Forwards connections to the specified local port or a random port if not specified. |
-| **active**     | List all active SSH tunnels.                                                                                                         |
-| **kill**       | Terminate an active SSH tunnel.                                                                                                      |
-| **completion** | Generate the autocompletion script for the specified shell.                                                                          |
+| Command        | Description                                                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **list**       | List all SSH tunnel configurations, optionally filtering by a search pattern. (You can use a pattern to only list the configurations that fuzzy match that pattern) |  |
+| **add**        | Add a new SSH tunnel configuration.                                                                                                                                 |
+| **edit**       | Edit an existing SSH tunnel configuration.                                                                                                                          |
+| **delete**     | Delete an existing SSH tunnel configuration.                                                                                                                        |
+| **tunnel**     | Start an SSH tunnel using a saved configuration, optionally specifying a local port.                                                                                |
+| **active**     | List all active SSH tunnels.                                                                                                                                        |
+| **kill**       | Terminate an active SSH tunnel.                                                                                                                                     |
+| **help**       | Display help about any command.                                                                                                                                     |
+| **completion** | Generate the autocompletion script for the specified shell.                                                                                                         |
 
 
 ## Development

@@ -12,10 +12,20 @@ import (
 )
 
 var StartSshTunnelCmd = &cobra.Command{
-	Use:           "tunnel <configuration name>",
-	Short:         "Start a tunnel using a configuration. The tunnel will forward connections to [local port] if specified or to a random port.",
-	Long:          "ssh-tunnel-manager tunnel <configuration name> [local port]",
-	Args:          cobra.MinimumNArgs(1),
+	Use:   "tunnel <configuration name> [local port]",
+	Short: "Start an SSH tunnel using a saved configuration, optionally specifying a local port.",
+	Long: `
+Start an SSH tunnel using a predefined configuration, with the option to specify a local port for forwarding.
+
+This command initiates an SSH tunnel based on a saved configuration you specify by name. It's designed to forward connections from a local port on your machine to a remote destination defined in the configuration. If you do not specify a local port, the system will automatically allocate a random port for forwarding.
+
+When specifying a local port, ensure it is not in use to avoid binding errors. The command provides a seamless way to establish secure SSH connections for various purposes like secure remote access or port forwarding for services.
+
+Usage:
+- sshtm tunnel my_configuration: Starts a tunnel using the my_configuration setup. The tunnel will use the local port saved with the configuration if not specified.
+- sshtm tunnel my_configuration 8080: Starts a tunnel using the my_configuration setup with local port 8080 explicitly defined for forwarding.
+`,
+	Args:          cobra.MinimumNArgs(0),
 	SilenceErrors: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		configName := ""
@@ -63,4 +73,3 @@ var StartSshTunnelCmd = &cobra.Command{
 		fmt.Printf("%s", r.GetResult())
 	},
 }
-

@@ -11,11 +11,20 @@ import (
 )
 
 var DeleteConfigurationsCmd = &cobra.Command{
-	Use:     "delete",
-	Aliases: []string{"del"},
-	Short:   "Delete a configuration",
+	Use:     "delete <configuration name>",
+	Aliases: []string{"d", "del"},
+	Short:   "Delete an existing SSH tunnel configuration.",
 	Long: `
-Delete a configuration.
+Delete an existing SSH tunnel configuration by specifying its configuration name.
+
+This command removes a saved SSH tunnel configuration from your system. Use it when you need to clean up unused configurations or make space for new ones. Deleting a configuration is irreversible, so ensure you have selected the correct one before executing this command.
+
+Simply provide the configuration name of the configuration you wish to delete as an argument to this command. If the configuration name is omitted or incorrect, the command will prompt you to provide a valid configuration name.
+
+Examples:
+- sshtm delete my_configuration
+- sshtm del old_configuration
+- sshtm d my_configuration
 `,
 	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
