@@ -13,7 +13,7 @@ import (
 
 var KillSshTunnelCmd = &cobra.Command{
 	Use:     "kill <configuration name or local port>",
-	Aliases: []string{"terminate"},
+	Aliases: []string{"k", "terminate"},
 	Short:   "Terminate an active SSH tunnel.",
 	Long: `
 Terminate an active SSH tunnel either by specifying its configuration name or the local port it uses.

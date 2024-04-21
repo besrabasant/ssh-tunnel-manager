@@ -13,6 +13,7 @@ import (
 
 var StartSshTunnelCmd = &cobra.Command{
 	Use:   "tunnel <configuration name> [local port]",
+	Aliases: []string{"t"},
 	Short: "Start an SSH tunnel using a saved configuration, optionally specifying a local port.",
 	Long: `
 Start an SSH tunnel using a predefined configuration, with the option to specify a local port for forwarding.
@@ -24,6 +25,8 @@ When specifying a local port, ensure it is not in use to avoid binding errors. T
 Usage:
 - sshtm tunnel my_configuration: Starts a tunnel using the my_configuration setup. The tunnel will use the local port saved with the configuration if not specified.
 - sshtm tunnel my_configuration 8080: Starts a tunnel using the my_configuration setup with local port 8080 explicitly defined for forwarding.
+- sshtm t my_configuration
+- sshtm t my_configuration 8080
 `,
 	Args:          cobra.MinimumNArgs(0),
 	SilenceErrors: true,
