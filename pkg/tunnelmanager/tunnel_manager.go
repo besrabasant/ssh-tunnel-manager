@@ -103,6 +103,7 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	privateKey, keyReadErr := readPrivateKeyFile(keyFile)
 	if keyReadErr != nil {
 		m.ErrChan <- keyReadErr
+		return
 	}
 
 	key, keyParseErr := ssh.ParsePrivateKey(privateKey)
@@ -130,6 +131,7 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	client, clientErr := ssh.Dial("tcp", sshServer, config)
 	if clientErr != nil {
 		m.ErrChan <- fmt.Errorf("couldn't connect to SSH server %q: %v", sshServer, clientErr)
+		return
 	}
 
 	m.ResultChan <- "\nConnected\n"

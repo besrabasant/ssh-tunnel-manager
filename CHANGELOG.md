@@ -19,5 +19,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Removed
 - 
 
+## [1.0.1] - 2024-04-22
+### Fixed
+- stop further executions if private key is not read or parsed properly.
 
-## [1.0.0] - 2023-06-15
+## [1.0.0] - 2024-04-20

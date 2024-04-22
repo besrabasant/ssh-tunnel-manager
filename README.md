@@ -4,7 +4,7 @@ SSH Tunnel Manager (**sshtm**) allows you to manage SSH tunnel configurations fo
 
 ## Current Version
 
-**SSH Tunnel Manager (sshtm) v1.0.0**
+**SSH Tunnel Manager (sshtm) v1.0.1**
 
 Ensure you are using the latest version to benefit from the newest features and improvements.
 
