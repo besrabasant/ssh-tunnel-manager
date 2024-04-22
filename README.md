@@ -90,10 +90,4 @@ Below is the list of available commands in **sshtm**, with descriptions for each
 
 ## Versioning Policy
 
-We use [Semantic Versioning (SemVer)](https://semver.org/) for our version numbers. Each release increases the version number as follows:
-
-- **MAJOR version** when we make incompatible API changes,
-- **MINOR version** when we add functionality in a backwards compatible manner, and
-- **PATCH version** when we make backwards compatible bug fixes.
-
-This versioning approach helps our users to better plan their upgrades and understand compatibility.
+This project uses [Semantic Versioning (SemVer)](https://semver.org/) for version numbers.
