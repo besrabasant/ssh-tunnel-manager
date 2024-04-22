@@ -73,9 +73,10 @@ Below is the list of available commands in **sshtm**, with descriptions for each
 
 1. **Start daemon** :
    To start the sshtm background service for development, run:
-    ```sh
+   ```sh
+    make gen_proto
     air
-    ```
+   ```
 
    This command assumes you have [Air](https://github.com/cosmtrek/air) installed for live reloading during development. It should be executed from the project root directory.
    
