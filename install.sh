@@ -5,8 +5,8 @@ make
 mkdir -p $HOME/.config/systemd/user
 mkdir -p $HOME/.local/share/sshtm
 
-mv sshtmd $HOME/.local/bin
-mv sshtm $HOME/.local/bin
+mv sshtmd $HOME/.local/bin/
+mv sshtm $HOME/.local/bin/
 cp -r scripts $HOME/.local/share/sshtm
 
 # Optional: Set up the application as a system service (for systems using systemd)
