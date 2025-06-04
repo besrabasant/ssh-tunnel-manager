@@ -12,7 +12,7 @@ cp -r scripts $HOME/.local/share/sshtm
 # Optional: Set up the application as a system service (for systems using systemd)
 cat <<EOF > $HOME/.config/systemd/user/sshtmd.service
 [Unit]
-Description=SSH Tunnnel manager Daemon
+Description=SSH Tunnel Manager Daemon
 
 [Service]
 Type=simple
