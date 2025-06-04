@@ -14,6 +14,8 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
+var randomPortGenerator = generateRandomPort
+
 func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *tunnelmanager.TunnelManager) (*rpc.StartTunnelResponse, error) {
 	var output strings.Builder
 	manager.CreateResultChannels()
@@ -42,7 +44,7 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 
 	if localPort == 0 {
 		// Generate random port
-		randomPort, err := generateRandomPort()
+		randomPort, err := randomPortGenerator()
 		if err != nil {
 			return nil, fmt.Errorf("couldn't generate a random port: %v", err)
 		}
@@ -54,14 +56,14 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, manager *
 
 		portBusy := false
 		for port := range manager.Connections {
-			if port == int(req.LocalPort) {
+			if port == int(localPort) {
 				portBusy = true
 				break
 			}
 		}
 
 		if portBusy {
-			output.WriteString(fmt.Sprint("\nCannot start tunnel as connection is already open on port ", req.LocalPort, "\n"))
+			output.WriteString(fmt.Sprintf("\nCannot start tunnel as connection is already open on port %d (requested %d)\n", localPort, req.LocalPort))
 			return &rpc.StartTunnelResponse{Result: output.String()}, nil
 		}
 	}
