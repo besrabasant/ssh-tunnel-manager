@@ -42,8 +42,9 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	defer close(m.ResultChan)
 	defer close(m.ErrChan)
 
-	// Enable lock
+	// Enable lock and ensure it's released on every exit path
 	m.Mutex.Lock()
+	defer m.Mutex.Unlock()
 
 	// Close Existing connections
 	if connInfo, exists := m.Connections[localPort]; exists {
@@ -160,8 +161,6 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	currentConnInfo.Listener = listener
 	m.Connections[localPort] = currentConnInfo
 
-	m.Mutex.Unlock()
-
 	m.ResultChan <- "Local listener set up, ready to accept connections.\n"
 
 	// Start accepting connections on the local listener
@@ -176,7 +175,7 @@ func (m *TunnelManager) forwardTunnel(ctx context.Context, tunnelCtx context.Con
 	m.Mutex.Lock()
 	currentConnInfo, exists := m.Connections[localPort]
 	m.Mutex.Unlock()
-	
+
 	if !exists || currentConnInfo.Listener == nil {
 		log.Println("No listener found, returning")
 		return
