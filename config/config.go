@@ -13,3 +13,5 @@ const Address = Host + ":" + Port
 const ConfigDirFlagName = "config-dir"
 
 const DefaultConfigDir = "~/.ssh-tunnel-manager"
+
+const ActiveTunnelsFile = "active_tunnels.json"
