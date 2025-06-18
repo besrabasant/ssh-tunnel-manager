@@ -15,6 +15,48 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// ensureServerAddress appends the default SSH port if none is specified
+func ensureServerAddress(addr string) string {
+	if _, _, err := net.SplitHostPort(addr); err != nil {
+		if !strings.Contains(addr, ":") {
+			return addr + ":" + config.DefaultSSHPort
+		}
+	}
+	return addr
+}
+
+// recreateSSHClient attempts to establish a new ssh.Client when the existing
+// connection breaks. It updates the ConnectionInfo in place if successful.
+func (m *TunnelManager) recreateSSHClient(ci *ConnectionInfo, port int) error {
+	sshServer := ensureServerAddress(ci.Config.Server)
+
+	privateKey, err := readPrivateKeyFile(ci.Config.KeyFile)
+	if err != nil {
+		return err
+	}
+	key, err := ssh.ParsePrivateKey(privateKey)
+	if err != nil {
+		return fmt.Errorf("couldn't parse private key %q: %v", ci.Config.KeyFile, err)
+	}
+	cfg := &ssh.ClientConfig{
+		User:            ci.Config.User,
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(key)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         10 * time.Second,
+	}
+	client, err := ssh.Dial("tcp", sshServer, cfg)
+	if err != nil {
+		return err
+	}
+
+	m.Mutex.Lock()
+	ci.Client = client
+	m.Connections[port] = ci
+	m.Mutex.Unlock()
+
+	return nil
+}
+
 // TunnelManager manages multiple SSH tunnels
 type TunnelManager struct {
 	Mutex       sync.Mutex
@@ -231,8 +273,17 @@ func (m *TunnelManager) forwardTunnel(ctx context.Context, tunnelCtx context.Con
 				remoteConn, err := currentConnInfo.Client.Dial("tcp", remoteAddress)
 				if err != nil {
 					log.Printf("error dialing remote address %s: %v", remoteAddress, err)
-					localConn.Close()
-					return
+					if recErr := m.recreateSSHClient(currentConnInfo, localPort); recErr != nil {
+						log.Printf("failed to recreate ssh client: %v", recErr)
+						localConn.Close()
+						return
+					}
+					remoteConn, err = currentConnInfo.Client.Dial("tcp", remoteAddress)
+					if err != nil {
+						log.Printf("error dialing remote address %s after reconnect: %v", remoteAddress, err)
+						localConn.Close()
+						return
+					}
 				}
 
 				runTunnel(localConn, remoteConn)
