@@ -39,12 +39,12 @@ func KillTunnelTask(ctx context.Context, req *rpc.KillTunnelRequest, manager *tu
 
 	if connInfo != nil {
 		manager.Mutex.Lock()
-		defer manager.Mutex.Unlock()
 
 		output.WriteString(fmt.Sprint("Closing existing connection on port ", connPort, " for ", connInfo.Config.Name, "\n"))
 
 		// If there's an existing connection on the same port, close it
 		connInfo.ClearConnection() // Cancel the context of the existing connection
+		manager.Mutex.Unlock()
 
 		output.WriteString(fmt.Sprintf("\nTunneling stopped %q <==> %q through %q\n", connInfo.LocalAddr, connInfo.RemoteAddr, connInfo.Config.Server))
 
