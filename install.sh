@@ -26,4 +26,10 @@ systemctl --user daemon-reload
 
 # Enable and start the service
 systemctl --user enable sshtmd
-systemctl --user start sshtmd
+
+# If the service is already running, restart it. Otherwise start it normally.
+if systemctl --user is-active --quiet sshtmd; then
+    systemctl --user restart sshtmd
+else
+    systemctl --user start sshtmd
+fi
