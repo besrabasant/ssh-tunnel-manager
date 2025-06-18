@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
@@ -90,6 +91,11 @@ loop:
 				errReceived = true
 			}
 		}
+	}
+
+	// persist running tunnels
+	if err := manager.SaveActiveTunnels(filepath.Join(configdir, config.ActiveTunnelsFile)); err != nil {
+		output.WriteString(fmt.Sprintf("Failed to persist active tunnels: %v\n", err))
 	}
 
 	return &rpc.StartTunnelResponse{Result: output.String()}, nil
