@@ -1,5 +1,7 @@
 #!/bin/bash
 
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+
 make
 
 mkdir -p $HOME/.config/systemd/user
