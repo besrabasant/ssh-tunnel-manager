@@ -9,6 +9,7 @@ depend=("openssh")
 makedepends=('go' 'git' 'make')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/besrabasant/ssh-tunnel-manager/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')
+install=sshtm.install
 
 build() {
     cd "${srcdir}/ssh-tunnel-manager-$pkgver"

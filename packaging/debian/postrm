@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|purge)
+        systemctl --user stop sshtmd.service 2>/dev/null || true
+        systemctl --user disable sshtmd.service 2>/dev/null || true
+        systemctl --user daemon-reload 2>/dev/null || true
+        ;;
+esac
+
+exit 0

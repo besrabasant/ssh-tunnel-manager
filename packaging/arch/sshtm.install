@@ -1,0 +1,5 @@
+post_remove() {
+    systemctl --user stop sshtmd.service 2>/dev/null || true
+    systemctl --user disable sshtmd.service 2>/dev/null || true
+    systemctl --user daemon-reload 2>/dev/null || true
+}
