@@ -4,7 +4,7 @@ SSH Tunnel Manager (**sshtm**) allows you to manage SSH tunnel configurations fo
 
 ## Current Version
 
-**SSH Tunnel Manager (sshtm) v1.0.1**
+**SSH Tunnel Manager (sshtm) v1.0.5**
 
 Ensure you are using the latest version to benefit from the newest features and improvements.
 
@@ -27,19 +27,33 @@ To build and run sshtm, you must have the following installed on your system:
 
 
 ## Installation
-Clone the repository and navigate to the project directory:
+
+### Build from source
+Clone the repository and run `./install.sh`:
 
 ```sh
 git clone https://github.com/besrabasant/ssh-tunnel-manager.git
 cd ssh-tunnel-manager
-```
-
-To build and install **sshtm**, run:
-
-```sh
 ./install.sh
 ```
-This script will compile the project, install executable files **sshtm**, and set up necessary environment variables.
+This script compiles the binaries and installs them under `~/.local/bin`.
+
+### Arch Linux (AUR)
+If you use `yay`, install directly from the AUR:
+
+```sh
+yay -S sshtm
+```
+You can also build the package manually with `makepkg` inside `packaging/arch`.
+
+### Debian/Ubuntu
+Build a deb package using the files in `packaging/debian`:
+
+```sh
+cd packaging/debian
+dpkg-buildpackage -us -uc
+sudo dpkg -i ../sshtm_1.0.5-1_amd64.deb
+```
 
 ## Uninstallation
 ```sh
