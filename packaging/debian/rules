@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+%:
+dh $@
+
+override_dh_auto_build:
+make
+
+override_dh_auto_install:
+install -Dm755 sshtm debian/sshtm/usr/bin/sshtm
+install -Dm755 sshtmd debian/sshtm/usr/bin/sshtmd
+install -Dm755 scripts/uninstall.sh debian/sshtm/usr/share/sshtm/uninstall.sh
+install -Dm644 packaging/sshtmd.service debian/sshtm/usr/lib/systemd/user/sshtmd.service

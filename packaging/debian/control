@@ -1,0 +1,13 @@
+Source: sshtm
+Section: misc
+Priority: optional
+Maintainer: Basant Besra <besrabasant@gmail.com>
+Standards-Version: 4.5.0
+Build-Depends: debhelper-compat (= 13), golang-any, make
+Homepage: https://github.com/besrabasant/ssh-tunnel-manager
+
+Package: sshtm
+Architecture: amd64
+Depends: ${misc:Depends}, openssh-client
+Description: SSH Tunnel Manager
+ A CLI and daemon to manage SSH tunnels.
