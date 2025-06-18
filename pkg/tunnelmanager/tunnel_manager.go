@@ -123,6 +123,14 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 		Config:     entry,
 	}
 
+	setupSuccess := false
+	defer func() {
+		if !setupSuccess {
+			cancel()
+			delete(m.Connections, localPort)
+		}
+	}()
+
 	// Check if the ssh server address specifies a port. And use 22 if not.
 	_, _, serverReadErr := net.SplitHostPort(sshServer)
 	if serverReadErr != nil {
@@ -203,6 +211,8 @@ func (m *TunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	currentConnInfo.Listener = listener
 	m.Connections[localPort] = currentConnInfo
 
+	setupSuccess = true
+
 	m.ResultChan <- "Local listener set up, ready to accept connections.\n"
 
 	// Start accepting connections on the local listener
@@ -258,7 +268,11 @@ func (m *TunnelManager) forwardTunnel(ctx context.Context, tunnelCtx context.Con
 			if err != nil {
 				// If we receive an error due to the listener being closed, gracefully exit the loop
 				if errors.Is(err, net.ErrClosed) {
-					break
+					currentConnInfo.Cancel()
+					m.Mutex.Lock()
+					delete(m.Connections, localPort)
+					m.Mutex.Unlock()
+					return
 				}
 				log.Printf("Failed to accept local connection: %v", err)
 				continue
