@@ -11,7 +11,7 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/config"
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
-	"github.com/besrabasant/ssh-tunnel-manager/rpc"
+	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
@@ -65,7 +65,7 @@ func DeleteConfig(dir, name string) error {
 	return configmanager.NewManager(dir).RemoveConfiguration(name)
 }
 
-func StartTunnel(name string) error {
+func StartTunnel(name string, localPort int) error {
 	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {
 		return fmt.Errorf("rpc connect: %w", err)
@@ -73,14 +73,14 @@ func StartTunnel(name string) error {
 	defer cleanup()
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = c.StartTunnel(ctx, &rpc.StartTunnelRequest{ConfigName: name, LocalPort: -1})
+	_, err = c.StartTunnel(ctx, &pb.StartTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
 	if err != nil {
 		return fmt.Errorf("start failed: %w", err)
 	}
 	return nil
 }
 
-func KillTunnel(name string) error {
+func KillTunnel(name string, localPort int) error {
 	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {
 		return fmt.Errorf("rpc connect: %w", err)
@@ -88,7 +88,7 @@ func KillTunnel(name string) error {
 	defer cleanup()
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = c.KillTunnel(ctx, &rpc.KillTunnelRequest{ConfigName: name, LocalPort: 0})
+	_, err = c.KillTunnel(ctx, &pb.KillTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
 	if err != nil {
 		return fmt.Errorf("kill failed: %w", err)
 	}

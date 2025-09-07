@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -63,14 +64,25 @@ func attachHandlers(s *State) {
 	})
 }
 
-func startOrKillSelected(s *State, name string) {
-	if s.IsActive(name) {
-		if err := KillTunnel(name); err != nil {
+func startOrKillSelected(s *State, e configmanager.Entry) {
+	if s.IsActive(e.Name) {
+		lp, ok := s.Active[e.Name]
+		if !ok || lp <= 0 {
+			showError(s, fmt.Errorf("cannot determine active local port for %q", e.Name))
+			return
+		}
+		if err := KillTunnel(e.Name, lp); err != nil {
 			showError(s, err)
+			return
 		}
 	} else {
-		if err := StartTunnel(name); err != nil {
+		lp := e.LocalPort
+		if lp <= 0 {
+			lp = -1 // request auto-assign
+		}
+		if err := StartTunnel(e.Name, lp); err != nil {
 			showError(s, err)
+			return
 		}
 	}
 	acts, err := LoadActive()

@@ -27,7 +27,7 @@ func buildUI(s *State) {
 	list.SetBorder(true).SetTitle(" Configurations ")
 	list.SetSelectedFunc(func(i int, main, secondary string, r rune) {
 		if e, ok := s.SelectedEntry(); ok {
-			startOrKillSelected(s, e.Name)
+			startOrKillSelected(s, e)
 		}
 	})
 	list.SetChangedFunc(func(i int, main, secondary string, r rune) {
@@ -137,7 +137,7 @@ func populateList(s *State) {
 		main := marker + " " + e.Name
 		secondary := fmt.Sprintf("%d->%s:%d", e.LocalPort, e.RemoteHost, e.RemotePort)
 		cfg := e
-		s.List.AddItem(main, secondary, 0, func() { startOrKillSelected(s, cfg.Name) })
+		s.List.AddItem(main, secondary, 0, func() { startOrKillSelected(s, cfg) })
 	}
 	s.Rebuilding = false
 
@@ -165,7 +165,7 @@ func decorateListActive(s *State) {
 		main := marker + " " + e.Name
 		secondary := fmt.Sprintf("%d->%s:%d", e.LocalPort, e.RemoteHost, e.RemotePort)
 		cfg := e
-		s.List.AddItem(main, secondary, 0, func() { startOrKillSelected(s, cfg.Name) })
+		s.List.AddItem(main, secondary, 0, func() { startOrKillSelected(s, cfg) })
 	}
 	s.Rebuilding = false
 
