@@ -72,12 +72,41 @@ func LoadActive() ([]Active, error) {
 	return out, nil
 }
 
-func AddConfig(dir string, e configmanager.Entry) error {
+func AddConfig(_ string, e configmanager.Entry) error {
 	if err := e.Validate(); err != nil {
 		return err
 	}
-	return configmanager.NewManager(dir).AddConfiguration(e)
+	c, cleanup, err := lib.CreateDaemonServiceClient()
+	if err != nil {
+		return fmt.Errorf("rpc connect: %w", err)
+	}
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	resp, err := c.AddConfigurationJSON(ctx, &pb.AddOrUpdateConfigurationRequest{
+		Name: e.Name,
+		Data: &pb.TunnelConfig{
+			Name:        e.Name,
+			Description: e.Description,
+			Server:      e.Server,
+			User:        e.User,
+			KeyFile:     e.KeyFile,
+			RemoteHost:  e.RemoteHost,
+			RemotePort:  int32(e.RemotePort),
+			LocalPort:   int32(e.LocalPort),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("add config (json) rpc: %w", err)
+	}
+	if resp.GetStatus() == pb.ResponseStatus_Error {
+		return fmt.Errorf(resp.GetMessage())
+	}
+	return nil
 }
+
 func UpdateConfig(dir string, e configmanager.Entry) error {
 	if err := e.Validate(); err != nil {
 		return err

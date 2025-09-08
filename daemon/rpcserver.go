@@ -37,6 +37,10 @@ func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfi
 	return tasks.AddConfiguration(ctx, req)
 }
 
+func (s *server) AddConfigurationJSON(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.MutationResponse, error) {
+	return tasks.AddConfigurationJSON(ctx, req)
+}
+
 func (s *server) DeleteConfiguration(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.DeleteConfigurationResponse, error) {
 	return tasks.DeleteTunnelConfigTask(ctx, req, s.manager)
 }

@@ -10,7 +10,9 @@ service DaemonService {
   rpc ListConfigurationsJSON (ListConfigurationsJSONRequest) returns (ListConfigurationsJSONResponse) {}
 
   rpc AddConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
-  
+
+  rpc AddConfigurationJSON (AddOrUpdateConfigurationRequest) returns (MutationResponse) {}
+
   rpc UpdateConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
   
   rpc FetchConfiguration (FetchConfigurationRequest) returns (FetchConfigurationResponse) {}
@@ -54,6 +56,12 @@ message ListConfigurationsJSONRequest {}
 
 message ListConfigurationsJSONResponse {
   repeated TunnelConfig configs = 1;
+}
+
+message MutationResponse {
+  ResponseStatus status = 1;
+  string message        = 2;
+  TunnelConfig data     = 3;
 }
 
 message AddOrUpdateConfigurationRequest {
