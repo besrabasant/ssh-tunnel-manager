@@ -3,7 +3,6 @@ package tui
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -20,20 +19,12 @@ type Active struct {
 	LocalPort int
 }
 
-func ResolveConfigDir() (string, error) {
-	dir := os.Getenv("SSHTM_CONFIG_DIR")
-	if dir == "" {
-		dir = config.DefaultConfigDir
-	}
-	return utils.ResolveDir(dir)
-}
-
 func LoadConfigs(dir string) ([]configmanager.Entry, error) {
 	return configmanager.NewManager(dir).GetConfigurations()
 }
 
 func LoadActive() ([]Active, error) {
-	dir, err := ResolveConfigDir()
+	dir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
 		return nil, err
 	}

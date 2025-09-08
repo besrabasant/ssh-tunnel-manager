@@ -3,13 +3,16 @@ package tui
 import (
 	"fmt"
 	"time"
+
+	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
 func Run() error {
 	s := NewState()
 	applyTheme(s)
 
-	dir, err := ResolveConfigDir()
+	dir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
 		return fmt.Errorf("resolve config dir: %w", err)
 	}
