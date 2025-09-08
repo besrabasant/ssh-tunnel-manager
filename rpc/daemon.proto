@@ -20,7 +20,9 @@ service DaemonService {
   rpc FetchConfiguration (FetchConfigurationRequest) returns (FetchConfigurationResponse) {}
   
   rpc DeleteConfiguration (DeleteConfigurationRequest) returns (DeleteConfigurationResponse) {}
-  
+
+  rpc DeleteConfigurationJSON (DeleteConfigurationRequest) returns (MutationResponse) {}
+
   rpc StartTunnel (StartTunnelRequest) returns (StartTunnelResponse) {}
   
   rpc KillTunnel (KillTunnelRequest) returns (KillTunnelResponse) {}

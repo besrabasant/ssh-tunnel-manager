@@ -49,6 +49,10 @@ func (s *server) DeleteConfiguration(ctx context.Context, req *rpc.DeleteConfigu
 	return tasks.DeleteTunnelConfigTask(ctx, req, s.manager)
 }
 
+func (s *server) DeleteConfigurationJSON(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.MutationResponse, error) {
+	return tasks.DeleteConfigurationJSON(ctx, req, s.manager)
+}
+
 // Tunneling
 func (s *server) StartTunnel(ctx context.Context, req *rpc.StartTunnelRequest) (*rpc.StartTunnelResponse, error) {
 	return tasks.StartTunnelTask(ctx, req, s.manager)

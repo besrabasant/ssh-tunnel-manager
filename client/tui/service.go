@@ -143,8 +143,26 @@ func UpdateConfig(_ string, e configmanager.Entry) error {
 	return nil
 }
 
-func DeleteConfig(dir, name string) error {
-	return configmanager.NewManager(dir).RemoveConfiguration(name)
+func DeleteConfig(_ string, name string) error {
+	c, cleanup, err := lib.CreateDaemonServiceClient()
+	if err != nil {
+		return fmt.Errorf("rpc connect: %w", err)
+	}
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	resp, err := c.DeleteConfigurationJSON(ctx, &pb.DeleteConfigurationRequest{
+		Name: name,
+	})
+	if err != nil {
+		return fmt.Errorf("delete config (json) rpc: %w", err)
+	}
+	if resp.GetStatus() == pb.ResponseStatus_Error {
+		return fmt.Errorf(resp.GetMessage())
+	}
+	return nil
 }
 
 func StartTunnel(name string, localPort int) (string, error) {
