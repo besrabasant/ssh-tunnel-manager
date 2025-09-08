@@ -3,15 +3,11 @@ package tui
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
-	"github.com/besrabasant/ssh-tunnel-manager/config"
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
-	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
-	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
 type Active struct {
@@ -24,18 +20,26 @@ func LoadConfigs(dir string) ([]configmanager.Entry, error) {
 }
 
 func LoadActive() ([]Active, error) {
-	dir, err := utils.ResolveDir(config.DefaultConfigDir)
+	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc connect: %w", err)
 	}
-	p := filepath.Join(dir, config.ActiveTunnelsFile)
-	ts, err := tunnelmanager.LoadActiveTunnels(p)
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	rj, err := c.ListActiveTunnelsJSON(ctx, &pb.ListActiveTunnelsJSONRequest{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list active tunnels (json) rpc: %w", err)
 	}
-	out := make([]Active, 0, len(ts))
-	for _, t := range ts {
-		out = append(out, Active{Name: t.ConfigName, LocalPort: t.LocalPort})
+
+	out := make([]Active, 0, len(rj.GetTunnels()))
+	for _, t := range rj.GetTunnels() {
+		out = append(out, Active{
+			Name:      t.GetName(),
+			LocalPort: int(t.GetLocalPort()),
+		})
 	}
 	return out, nil
 }

@@ -20,6 +20,8 @@ service DaemonService {
   rpc KillTunnel (KillTunnelRequest) returns (KillTunnelResponse) {}
   
   rpc ListActiveTunnels (ListActiveTunnelsRequest) returns (ListActiveTunnelsResponse) {}
+
+  rpc ListActiveTunnelsJSON (ListActiveTunnelsJSONRequest) returns (ListActiveTunnelsJSONResponse) {}
 }
 
 message TunnelConfig {
@@ -89,6 +91,20 @@ message ListActiveTunnelsRequest {
 
 message ListActiveTunnelsResponse {
   string result = 1;
+}
+
+message ActiveTunnel {
+  string name        = 1;
+  int32  local_port  = 2;
+  string remote_addr = 3;
+  string local_addr  = 4;
+  string server      = 5;
+}
+
+message ListActiveTunnelsJSONRequest {}
+
+message ListActiveTunnelsJSONResponse {
+  repeated ActiveTunnel tunnels = 1;
 }
 
 message KillTunnelRequest {

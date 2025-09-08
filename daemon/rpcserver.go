@@ -10,7 +10,7 @@ import (
 
 type server struct {
 	rpc.UnimplementedDaemonServiceServer
-	manager  *tunnelmanager.TunnelManager
+	manager *tunnelmanager.TunnelManager
 }
 
 func (s *server) RegisterTunnelManger(manager *tunnelmanager.TunnelManager) {
@@ -48,4 +48,8 @@ func (s *server) KillTunnel(ctx context.Context, req *rpc.KillTunnelRequest) (*r
 
 func (s *server) ListActiveTunnels(ctx context.Context, req *rpc.ListActiveTunnelsRequest) (*rpc.ListActiveTunnelsResponse, error) {
 	return tasks.ListActiveTunnelsTask(ctx, req, s.manager)
+}
+
+func (s *server) ListActiveTunnelsJSON(ctx context.Context, req *rpc.ListActiveTunnelsJSONRequest) (*rpc.ListActiveTunnelsJSONResponse, error) {
+	return tasks.ListActiveTunnelsJSONTask(ctx, req, s.manager)
 }

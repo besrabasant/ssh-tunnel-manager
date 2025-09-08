@@ -70,19 +70,13 @@ func startOrKillSelected(s *State, e configmanager.Entry) {
 	var err error
 
 	if s.IsActive(e.Name) {
-		lp, ok := s.Active[e.Name]
-		if !ok || lp <= 0 {
-			showError(s, fmt.Errorf("cannot determine active local port for %q", e.Name))
-			s.LogError("Kill failed: cannot determine local port for %q", e.Name)
-			return
-		}
-		msg, err = KillTunnel(e.Name, lp)
+		msg, err = KillTunnel(e.Name, 0) // let daemon find the port
 		if err != nil {
 			showError(s, err)
-			s.LogError("Kill failed for %s (port %d): %v", e.Name, lp, err)
+			s.LogError("Kill failed for %s: %v", e.Name, err)
 			return
 		}
-		s.LogInfo("Killed tunnel %s (port %d)", e.Name, lp)
+		s.LogInfo("Killed tunnel %s", e.Name)
 	} else {
 		lp := e.LocalPort
 		if lp <= 0 {
