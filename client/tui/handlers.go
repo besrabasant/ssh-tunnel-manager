@@ -10,7 +10,13 @@ import (
 
 func attachHandlers(s *State) {
 	s.Root.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
-
+		if ev.Key() == tcell.KeyEnter && s.App.GetFocus() == s.List {
+			if e, ok := s.SelectedEntry(); ok {
+				startOrKillSelected(s, e)
+				return nil
+			}
+			return nil
+		}
 		switch ev.Key() {
 		case tcell.KeyCtrlC:
 			s.Close()
