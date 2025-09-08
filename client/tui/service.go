@@ -15,10 +15,38 @@ type Active struct {
 	LocalPort int
 }
 
-func LoadConfigs(dir string) ([]configmanager.Entry, error) {
-	return configmanager.NewManager(dir).GetConfigurations()
-}
+// LoadConfigs now uses daemon RPC (JSON) instead of reading files directly.
+// The dir parameter is ignored on purpose; the daemon is the source of truth.
+func LoadConfigs(_ string) ([]configmanager.Entry, error) {
+	c, cleanup, err := lib.CreateDaemonServiceClient()
+	if err != nil {
+		return nil, fmt.Errorf("rpc connect: %w", err)
+	}
+	defer cleanup()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	rj, err := c.ListConfigurationsJSON(ctx, &pb.ListConfigurationsJSONRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("list configurations (json) rpc: %w", err)
+	}
+
+	outs := make([]configmanager.Entry, 0, len(rj.GetConfigs()))
+	for _, tc := range rj.GetConfigs() {
+		outs = append(outs, configmanager.Entry{
+			Name:        tc.GetName(),
+			Description: tc.GetDescription(),
+			Server:      tc.GetServer(),
+			User:        tc.GetUser(),
+			KeyFile:     tc.GetKeyFile(),
+			RemoteHost:  tc.GetRemoteHost(),
+			RemotePort:  int(tc.GetRemotePort()),
+			LocalPort:   int(tc.GetLocalPort()),
+		})
+	}
+	return outs, nil
+}
 func LoadActive() ([]Active, error) {
 	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {

@@ -21,6 +21,10 @@ func (s *server) ListConfigurations(ctx context.Context, req *rpc.ListConfigurat
 	return tasks.ListConfigurationTask(ctx, req)
 }
 
+func (s *server) ListConfigurationsJSON(ctx context.Context, req *rpc.ListConfigurationsJSONRequest) (*rpc.ListConfigurationsJSONResponse, error) {
+	return tasks.ListConfigurationsJSONTask(ctx, req)
+}
+
 func (s *server) FetchConfiguration(ctx context.Context, req *rpc.FetchConfigurationRequest) (*rpc.FetchConfigurationResponse, error) {
 	return tasks.FetchTunnelConfigTask(ctx, req)
 }

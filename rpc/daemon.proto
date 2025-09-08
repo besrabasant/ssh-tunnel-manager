@@ -7,6 +7,8 @@ option go_package = "github.com/besrabasant/ssh-tunnel-manager/rpc";
 service DaemonService {
   rpc ListConfigurations (ListConfigurationsRequest) returns (ListConfigurationsResponse) {}
 
+  rpc ListConfigurationsJSON (ListConfigurationsJSONRequest) returns (ListConfigurationsJSONResponse) {}
+
   rpc AddConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
   
   rpc UpdateConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
@@ -46,6 +48,12 @@ message ListConfigurationsRequest {
 
 message ListConfigurationsResponse {
   string result = 1;
+}
+
+message ListConfigurationsJSONRequest {}
+
+message ListConfigurationsJSONResponse {
+  repeated TunnelConfig configs = 1;
 }
 
 message AddOrUpdateConfigurationRequest {
