@@ -18,10 +18,9 @@ func (s *State) log(level LogLevel, format string, args ...any) {
 	if s == nil || s.Logs == nil {
 		return
 	}
-	ts := time.Now().Format("15:04:05")
-	msg := strings.TrimSpace(fmt.Sprintf(format, args...))
 
-	var tag string
+	// Build level tag + timestamp
+	tag := "[white]LOG[-]"
 	switch level {
 	case LevelInfo:
 		tag = "[green]INFO[-]"
@@ -29,16 +28,35 @@ func (s *State) log(level LogLevel, format string, args ...any) {
 		tag = "[yellow]ERROR[-]"
 	case LevelCritical:
 		tag = "[red]CRITICAL[-]"
-	default:
-		tag = "[white]LOG[-]"
 	}
+	ts := time.Now().Format("15:04:05")
+	prefix := ts + " " + tag + " "
 
-	prev := s.Logs.GetText(false)
-	if prev != "" && !strings.HasSuffix(prev, "\n") {
-		prev += "\n"
+	// Normalize and split incoming text
+	raw := fmt.Sprintf(format, args...)
+	lines := strings.Split(strings.ReplaceAll(raw, "\r\n", "\n"), "\n")
+
+	// Keep only non-empty lines (no blank lines)
+	outLines := make([]string, 0, len(lines))
+	for _, ln := range lines {
+		ln = strings.TrimSpace(ln)
+		if ln == "" {
+			continue
+		}
+		outLines = append(outLines, prefix+ln)
 	}
-	s.Logs.SetText(prev + fmt.Sprintf("%s %s %s\n", ts, tag, msg))
+	if len(outLines) == 0 {
+		return
+	}
+	newBlock := strings.Join(outLines, "\n")
 
+	// Append to existing buffer with exactly one newline separation and one trailing newline
+	prev := strings.TrimRight(s.Logs.GetText(false), "\n")
+	if prev == "" {
+		s.Logs.SetText(newBlock + "\n")
+	} else {
+		s.Logs.SetText(prev + "\n" + newBlock + "\n")
+	}
 }
 
 // Public helpers
