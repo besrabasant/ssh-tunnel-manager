@@ -44,6 +44,7 @@ func NewState() *State {
 		quitCh: make(chan struct{}),
 	}
 	s.App.SetTitle("SSH Tunnel Manager")
+	s.App.EnableMouse(true)
 	return s
 }
 

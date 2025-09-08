@@ -102,7 +102,7 @@ func buildUI(s *State) {
 	logs := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
-		SetWrap(false).
+		SetWrap(false).ScrollToEnd().
 		SetChangedFunc(func() {
 			if s.App != nil {
 				s.App.Draw()
