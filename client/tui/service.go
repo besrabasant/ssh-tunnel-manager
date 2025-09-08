@@ -56,32 +56,36 @@ func DeleteConfig(dir, name string) error {
 	return configmanager.NewManager(dir).RemoveConfiguration(name)
 }
 
-func StartTunnel(name string, localPort int) error {
+func StartTunnel(name string, localPort int) (string, error) {
 	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {
-		return fmt.Errorf("rpc connect: %w", err)
+		return "", fmt.Errorf("rpc connect: %w", err)
 	}
 	defer cleanup()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = c.StartTunnel(ctx, &pb.StartTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
+
+	resp, err := c.StartTunnel(ctx, &pb.StartTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
 	if err != nil {
-		return fmt.Errorf("start failed: %w", err)
+		return "", fmt.Errorf("start failed: %w", err)
 	}
-	return nil
+	return resp.GetResult(), nil
 }
 
-func KillTunnel(name string, localPort int) error {
+func KillTunnel(name string, localPort int) (string, error) {
 	c, cleanup, err := lib.CreateDaemonServiceClient()
 	if err != nil {
-		return fmt.Errorf("rpc connect: %w", err)
+		return "", fmt.Errorf("rpc connect: %w", err)
 	}
 	defer cleanup()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = c.KillTunnel(ctx, &pb.KillTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
+
+	resp, err := c.KillTunnel(ctx, &pb.KillTunnelRequest{ConfigName: name, LocalPort: int32(localPort)})
 	if err != nil {
-		return fmt.Errorf("kill failed: %w", err)
+		return "", fmt.Errorf("kill failed: %w", err)
 	}
-	return nil
+	return resp.GetResult(), nil
 }

@@ -29,6 +29,7 @@ type State struct {
 	DetailPages   *tview.Pages
 	DetailInfo    *tview.Table
 	DetailSSH     *tview.TextView
+	Logs          *tview.TextView
 	Status        *tview.TextView
 	FilterFocused bool
 	Footer        *tview.TextView

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/gdamore/tcell/v2"
@@ -65,29 +66,42 @@ func attachHandlers(s *State) {
 }
 
 func startOrKillSelected(s *State, e configmanager.Entry) {
+	var msg string
+	var err error
+
 	if s.IsActive(e.Name) {
 		lp, ok := s.Active[e.Name]
 		if !ok || lp <= 0 {
 			showError(s, fmt.Errorf("cannot determine active local port for %q", e.Name))
+			s.LogError("Kill failed: cannot determine local port for %q", e.Name)
 			return
 		}
-		if err := KillTunnel(e.Name, lp); err != nil {
+		msg, err = KillTunnel(e.Name, lp)
+		if err != nil {
 			showError(s, err)
+			s.LogError("Kill failed for %s (port %d): %v", e.Name, lp, err)
 			return
 		}
+		s.LogInfo("Killed tunnel %s (port %d)", e.Name, lp)
 	} else {
 		lp := e.LocalPort
 		if lp <= 0 {
 			lp = -1 // request auto-assign
 		}
-		if err := StartTunnel(e.Name, lp); err != nil {
+		msg, err = StartTunnel(e.Name, lp)
+		if err != nil {
 			showError(s, err)
+			s.LogError("Start failed for %s (requested port %d): %v", e.Name, lp, err)
 			return
 		}
+		s.LogInfo("Started tunnel %s (requested port %d)", e.Name, lp)
 	}
+
+	// Refresh active list & status as before
 	acts, err := LoadActive()
 	if err != nil {
 		showError(s, err)
+		s.LogError("Active refresh error: %v", err)
 		return
 	}
 	m := map[string]int{}
@@ -97,6 +111,12 @@ func startOrKillSelected(s *State, e configmanager.Entry) {
 	s.Active = m
 	decorateListActive(s)
 	updateStatus(s)
+
+	// Push daemon/TM output to logs
+	if strings.TrimSpace(msg) == "" {
+		msg = "No output from daemon."
+	}
+	s.LogInfo("Daemon: %s", strings.TrimSpace(msg))
 }
 
 func max(a, b int) int {

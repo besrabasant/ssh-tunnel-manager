@@ -96,11 +96,24 @@ func buildUI(s *State) {
 	detailPages.AddPage("info", infoTable, true, true)
 	// To-DO: add SSH page later
 	detailPages.AddPage("ssh", sshView, true, false)
+	detailPages.SetBorder(true).SetTitle(" Details ")
 	s.DetailPages = detailPages
+
+	logs := tview.NewTextView().
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(false).
+		SetChangedFunc(func() {
+			if s.App != nil {
+				s.App.Draw()
+			}
+		})
+	logs.SetTitle(" Logs ").SetBorder(true)
+	s.Logs = logs
 
 	right := tview.NewFlex().SetDirection(tview.FlexRow)
 	right.AddItem(detailPages, 0, 1, false)
-	right.SetBorder(true).SetTitle(" Details ")
+	right.AddItem(logs, 9, 2, false)
 	s.Right = right
 
 	status := tview.NewTextView().SetDynamicColors(true)
