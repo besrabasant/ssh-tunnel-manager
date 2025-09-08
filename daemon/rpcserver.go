@@ -33,6 +33,10 @@ func (s *server) UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateCo
 	return tasks.UpdateConfiguration(ctx, req, s.manager)
 }
 
+func (s *server) UpdateConfigurationJSON(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.MutationResponse, error) {
+	return tasks.UpdateConfigurationJSON(ctx, req, s.manager)
+}
+
 func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	return tasks.AddConfiguration(ctx, req)
 }

@@ -107,12 +107,42 @@ func AddConfig(_ string, e configmanager.Entry) error {
 	return nil
 }
 
-func UpdateConfig(dir string, e configmanager.Entry) error {
+// client/tui/service.go (UpdateConfig only)
+func UpdateConfig(_ string, e configmanager.Entry) error {
 	if err := e.Validate(); err != nil {
 		return err
 	}
-	return configmanager.NewManager(dir).UpdateConfiguration(e)
+	c, cleanup, err := lib.CreateDaemonServiceClient()
+	if err != nil {
+		return fmt.Errorf("rpc connect: %w", err)
+	}
+	defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	resp, err := c.UpdateConfigurationJSON(ctx, &pb.AddOrUpdateConfigurationRequest{
+		Name: e.Name,
+		Data: &pb.TunnelConfig{
+			Name:        e.Name,
+			Description: e.Description,
+			Server:      e.Server,
+			User:        e.User,
+			KeyFile:     e.KeyFile,
+			RemoteHost:  e.RemoteHost,
+			RemotePort:  int32(e.RemotePort),
+			LocalPort:   int32(e.LocalPort),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("update config (json) rpc: %w", err)
+	}
+	if resp.GetStatus() == pb.ResponseStatus_Error {
+		return fmt.Errorf(resp.GetMessage())
+	}
+	return nil
 }
+
 func DeleteConfig(dir, name string) error {
 	return configmanager.NewManager(dir).RemoveConfiguration(name)
 }

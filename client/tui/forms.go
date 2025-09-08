@@ -15,7 +15,7 @@ func showAddForm(s *State)                             { showConfigForm(s, confi
 func showEditForm(s *State, entry configmanager.Entry) { showConfigForm(s, entry, true) }
 
 func showConfigForm(s *State, initial configmanager.Entry, editing bool) {
-	form, collect := buildConfigForm(initial)
+	form, collect := buildConfigForm(initial, editing)
 	form.AddButton("Save", func() {
 		e, err := collect()
 		if err != nil {
@@ -53,10 +53,23 @@ func showConfigForm(s *State, initial configmanager.Entry, editing bool) {
 	addModalPage(s, form)
 }
 
-func buildConfigForm(initial configmanager.Entry) (*tview.Form, func() (configmanager.Entry, error)) {
+func buildConfigForm(initial configmanager.Entry, editing bool) (*tview.Form, func() (configmanager.Entry, error)) {
 	f := tview.NewForm()
 	f.SetItemPadding(1)
-	name := tview.NewInputField().SetLabel("Name").SetText(initial.Name)
+
+	name := tview.NewInputField().
+		SetLabel("Name").
+		SetText(initial.Name)
+
+	if editing {
+		// Make the name not editable and visually de-emphasized without using SetFieldBackgroundColor
+		name.SetDisabled(true)
+		name.SetLabelColor(tcell.ColorYellow)   // highlight the label
+		name.SetFieldTextColor(tcell.ColorGray) // dim the field text (supported in older tview)
+		// If your tview version supports it and you really want the background:
+		// name.SetFieldBackgroundColor(tcell.ColorGray)
+	}
+
 	desc := tview.NewInputField().SetLabel("Description").SetText(strings.TrimSpace(initial.Description))
 	server := tview.NewInputField().SetLabel("Server (host[:port])").SetText(initial.Server)
 	user := tview.NewInputField().SetLabel("User").SetText(initial.User)
@@ -64,29 +77,37 @@ func buildConfigForm(initial configmanager.Entry) (*tview.Form, func() (configma
 	rhost := tview.NewInputField().SetLabel("RemoteHost").SetText(initial.RemoteHost)
 	rport := tview.NewInputField().SetLabel("RemotePort").SetText(intToStr(initial.RemotePort))
 	lport := tview.NewInputField().SetLabel("LocalPort (0=auto)").SetText(intToStr(initial.LocalPort))
+
 	for _, it := range []tview.FormItem{name, desc, server, user, key, rhost, rport, lport} {
 		f.AddFormItem(it)
 	}
+
 	f.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
 		switch ev.Key() {
-		case tcell.KeyUp:
+		case tcell.KeyUp, tcell.KeyPgUp:
 			return tcell.NewEventKey(tcell.KeyBacktab, 0, ev.Modifiers())
-		case tcell.KeyDown:
-			return tcell.NewEventKey(tcell.KeyTab, 0, ev.Modifiers())
-		case tcell.KeyPgUp:
-			return tcell.NewEventKey(tcell.KeyBacktab, 0, ev.Modifiers())
-		case tcell.KeyPgDn:
+		case tcell.KeyDown, tcell.KeyPgDn:
 			return tcell.NewEventKey(tcell.KeyTab, 0, ev.Modifiers())
 		}
 		return ev
 	})
+
 	collect := func() (configmanager.Entry, error) {
 		rp, _ := strconv.Atoi(strings.TrimSpace(rport.GetText()))
 		lp := 0
 		if t := strings.TrimSpace(lport.GetText()); t != "" {
 			lp, _ = strconv.Atoi(t)
 		}
-		e := configmanager.Entry{Name: strings.TrimSpace(name.GetText()), Description: strings.TrimSpace(desc.GetText()), Server: strings.TrimSpace(server.GetText()), User: strings.TrimSpace(user.GetText()), KeyFile: strings.TrimSpace(key.GetText()), RemoteHost: strings.TrimSpace(rhost.GetText()), RemotePort: rp, LocalPort: lp}
+		e := configmanager.Entry{
+			Name:        strings.TrimSpace(name.GetText()),
+			Description: strings.TrimSpace(desc.GetText()),
+			Server:      strings.TrimSpace(server.GetText()),
+			User:        strings.TrimSpace(user.GetText()),
+			KeyFile:     strings.TrimSpace(key.GetText()),
+			RemoteHost:  strings.TrimSpace(rhost.GetText()),
+			RemotePort:  rp,
+			LocalPort:   lp,
+		}
 		if err := e.Validate(); err != nil {
 			return e, err
 		}
