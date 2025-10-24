@@ -7,19 +7,29 @@ option go_package = "github.com/besrabasant/ssh-tunnel-manager/rpc";
 service DaemonService {
   rpc ListConfigurations (ListConfigurationsRequest) returns (ListConfigurationsResponse) {}
 
+  rpc ListConfigurationsJSON (ListConfigurationsJSONRequest) returns (ListConfigurationsJSONResponse) {}
+
   rpc AddConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
-  
+
+  rpc AddConfigurationJSON (AddOrUpdateConfigurationRequest) returns (MutationResponse) {}
+
   rpc UpdateConfiguration (AddOrUpdateConfigurationRequest) returns (AddOrUpdateConfigurationResponse) {}
   
+  rpc UpdateConfigurationJSON (AddOrUpdateConfigurationRequest) returns (MutationResponse) {}
+
   rpc FetchConfiguration (FetchConfigurationRequest) returns (FetchConfigurationResponse) {}
   
   rpc DeleteConfiguration (DeleteConfigurationRequest) returns (DeleteConfigurationResponse) {}
-  
+
+  rpc DeleteConfigurationJSON (DeleteConfigurationRequest) returns (MutationResponse) {}
+
   rpc StartTunnel (StartTunnelRequest) returns (StartTunnelResponse) {}
   
   rpc KillTunnel (KillTunnelRequest) returns (KillTunnelResponse) {}
   
   rpc ListActiveTunnels (ListActiveTunnelsRequest) returns (ListActiveTunnelsResponse) {}
+
+  rpc ListActiveTunnelsJSON (ListActiveTunnelsJSONRequest) returns (ListActiveTunnelsJSONResponse) {}
 }
 
 message TunnelConfig {
@@ -44,6 +54,18 @@ message ListConfigurationsRequest {
 
 message ListConfigurationsResponse {
   string result = 1;
+}
+
+message ListConfigurationsJSONRequest {}
+
+message ListConfigurationsJSONResponse {
+  repeated TunnelConfig configs = 1;
+}
+
+message MutationResponse {
+  ResponseStatus status = 1;
+  string message        = 2;
+  TunnelConfig data     = 3;
 }
 
 message AddOrUpdateConfigurationRequest {
@@ -89,6 +111,20 @@ message ListActiveTunnelsRequest {
 
 message ListActiveTunnelsResponse {
   string result = 1;
+}
+
+message ActiveTunnel {
+  string name        = 1;
+  int32  local_port  = 2;
+  string remote_addr = 3;
+  string local_addr  = 4;
+  string server      = 5;
+}
+
+message ListActiveTunnelsJSONRequest {}
+
+message ListActiveTunnelsJSONResponse {
+  repeated ActiveTunnel tunnels = 1;
 }
 
 message KillTunnelRequest {

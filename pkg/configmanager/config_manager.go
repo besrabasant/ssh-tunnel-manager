@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/besrabasant/ssh-tunnel-manager/config"
 )
 
 // Entry is an SSH configuration entry
@@ -19,7 +21,7 @@ type Entry struct {
 	KeyFile     string
 	RemoteHost  string
 	RemotePort  int
-	LocalPort  	int
+	LocalPort   int
 }
 
 type Entries []Entry
@@ -117,7 +119,7 @@ func (m *manager) GetConfigurations() ([]Entry, error) {
 	}
 
 	for _, file := range files {
-		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") || file.Name() == config.ActiveTunnelsFile {
 			continue
 		}
 

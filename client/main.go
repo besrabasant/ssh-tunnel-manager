@@ -16,9 +16,11 @@ func main() {
 	cmd.SshtmCmd.AddCommand(cmd.StartSshTunnelCmd)
 	cmd.SshtmCmd.AddCommand(cmd.ListActiveSshTunnels)
 	cmd.SshtmCmd.AddCommand(cmd.KillSshTunnelCmd)
-	
+	cmd.SshtmCmd.AddCommand(cmd.HelpCmd)
+	cmd.SshtmCmd.Long = cmd.HelpCmd.Long
+
 	cmd.SshtmCmd.AddCommand(cmd.VersionCmd)
-	
+
 	if err := cmd.SshtmCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

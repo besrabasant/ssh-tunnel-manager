@@ -1,5 +1,5 @@
 pkgname=sshtm
-pkgver=1.0.5
+pkgver=1.0.7
 pkgrel=1
 pkgdesc="SSH Tunnel Manager"
 arch=('x86_64')
