@@ -20,7 +20,7 @@ Ensure you are using the latest version to benefit from the newest features and 
 
 To build and run sshtm, you must have the following installed on your system:
 
-- **Go (Golang)**: Ensure you have Go installed (version 1.15 or later is recommended). You can check your current Go version using `go version`.
+- **Go (Golang)**: Go 1.25 or later. You can check your current Go version using `go version`.
 - **Git**: Needed for cloning the repository and potentially fetching dependencies.
 - **Air (optional for development)**: For live reloading during development. Install Air by following the instructions at [Air GitHub Repository](https://github.com/cosmtrek/air).
 
@@ -36,7 +36,14 @@ git clone https://github.com/besrabasant/ssh-tunnel-manager.git
 cd ssh-tunnel-manager
 ./install.sh
 ```
-This script compiles the binaries and installs them under `~/.local/bin`.
+This script compiles the binaries for your OS/arch and installs them under `~/.local/bin`.
+
+**Data/config directory**: `~/.ssh-tunnel-manager`  
+**Scripts directory**: `~/.local/share/sshtm/scripts`
+
+**Services**:
+- Linux: installs a systemd *user* unit and starts `sshtmd`.
+- macOS: installs a LaunchAgent and starts `sshtmd`.
 
 ### Arch Linux (AUR)
 If you use `yay`, install directly from the AUR:
@@ -101,6 +108,16 @@ Below is the list of available commands in **sshtm**, with descriptions for each
    go run main.go [command] [arguments]
    ```
    Here, **[command]** is one of the commands available and **[arguments]** represents additional arguments that can be passed to the command.
+
+## Cross-Platform Builds
+
+The Makefile includes targets for macOS and Linux:
+
+```sh
+make build_linux   # linux/amd64
+make build_macos   # darwin/amd64 + darwin/arm64
+make build_all     # linux + macos
+```
 
 
 ## Versioning Policy
