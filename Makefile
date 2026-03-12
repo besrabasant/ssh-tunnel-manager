@@ -22,13 +22,26 @@ gen_proto:
 
 build: build_daemon build_client
 
-# Build the server
+# Build the server (current OS/arch)
 build_daemon:
 	$(GO_CMD) build -o sshtmd ./daemon
 
-# Build the client
+# Build the client (current OS/arch)
 build_client:
 	$(GO_CMD) build -o sshtm ./client
+
+# Cross-platform builds (macOS + Linux)
+build_linux:
+	GOOS=linux GOARCH=amd64 $(GO_CMD) build -o sshtmd-linux-amd64 ./daemon
+	GOOS=linux GOARCH=amd64 $(GO_CMD) build -o sshtm-linux-amd64 ./client
+
+build_macos:
+	GOOS=darwin GOARCH=amd64 $(GO_CMD) build -o sshtmd-darwin-amd64 ./daemon
+	GOOS=darwin GOARCH=amd64 $(GO_CMD) build -o sshtm-darwin-amd64 ./client
+	GOOS=darwin GOARCH=arm64 $(GO_CMD) build -o sshtmd-darwin-arm64 ./daemon
+	GOOS=darwin GOARCH=arm64 $(GO_CMD) build -o sshtm-darwin-arm64 ./client
+
+build_all: build_linux build_macos
 
 # Clean up generated files and binaries
 clean:
@@ -41,4 +54,7 @@ help:
 	@echo "  make gen_proto     Generate Go code from .proto file"
 	@echo "  make build_daemon  Build the gRPC daemon"
 	@echo "  make build_client  Build the gRPC client"
+	@echo "  make build_linux   Build Linux binaries (amd64)"
+	@echo "  make build_macos   Build macOS binaries (amd64 + arm64)"
+	@echo "  make build_all     Build Linux + macOS binaries"
 	@echo "  make clean         Clean up generated files and binaries"
