@@ -30,4 +30,4 @@ jobs:
 
       - name: Check .SRCINFO up to date
         run: |
-          git diff --exit-code packaging/arch/.SRCINFO
+          git -C /__w/ssh-tunnel-manager/ssh-tunnel-manager diff --exit-code packaging/arch/.SRCINFO
