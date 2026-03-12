@@ -102,7 +102,7 @@ func AddConfig(_ string, e configmanager.Entry) error {
 		return fmt.Errorf("add config (json) rpc: %w", err)
 	}
 	if resp.GetStatus() == pb.ResponseStatus_Error {
-		return fmt.Errorf(resp.GetMessage())
+		return fmt.Errorf("%s", resp.GetMessage())
 	}
 	return nil
 }
@@ -138,7 +138,7 @@ func UpdateConfig(_ string, e configmanager.Entry) error {
 		return fmt.Errorf("update config (json) rpc: %w", err)
 	}
 	if resp.GetStatus() == pb.ResponseStatus_Error {
-		return fmt.Errorf(resp.GetMessage())
+		return fmt.Errorf("%s", resp.GetMessage())
 	}
 	return nil
 }
@@ -160,7 +160,7 @@ func DeleteConfig(_ string, name string) error {
 		return fmt.Errorf("delete config (json) rpc: %w", err)
 	}
 	if resp.GetStatus() == pb.ResponseStatus_Error {
-		return fmt.Errorf(resp.GetMessage())
+		return fmt.Errorf("%s", resp.GetMessage())
 	}
 	return nil
 }
