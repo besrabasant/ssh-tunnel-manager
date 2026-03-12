@@ -1,0 +1,61 @@
+name: Publish to AUR
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install base tools
+        run: |
+          pacman -Sy --noconfirm base-devel git openssh
+
+      - name: Configure SSH
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
+            echo "AUR_SSH_PRIVATE_KEY is not set" >&2
+            exit 1
+          fi
+          mkdir -p /root/.ssh
+          chmod 700 /root/.ssh
+          echo "$AUR_SSH_PRIVATE_KEY" > /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          ssh-keyscan -H aur.archlinux.org >> /root/.ssh/known_hosts
+
+      - name: Prepare AUR repo
+        run: |
+          cd /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch
+          makepkg --printsrcinfo > .SRCINFO
+          git clone ssh://aur@aur.archlinux.org/sshtm.git /tmp/aur
+          cd /tmp/aur
+          git rm -r . || true
+          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/PKGBUILD .
+          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/.SRCINFO .
+          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtm.install .
+          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtm.path.sh .
+          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtmd.service .
+          git add .
+          git status --short
+
+      - name: Commit and push
+        run: |
+          cd /tmp/aur
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "Update to ${GITHUB_REF_NAME:-manual}"
+          git push

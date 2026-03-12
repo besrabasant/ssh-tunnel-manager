@@ -1,0 +1,33 @@
+name: AUR Srcinfo
+
+on:
+  push:
+    paths:
+      - "packaging/arch/PKGBUILD"
+      - "packaging/arch/sshtm.install"
+      - "packaging/sshtm.path.sh"
+      - "packaging/sshtmd.service"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install base tools
+        run: |
+          pacman -Sy --noconfirm base-devel git
+
+      - name: Generate .SRCINFO
+        run: |
+          useradd -m build
+          chown -R build:build .
+          su - build -c 'cd /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch && makepkg --printsrcinfo > .SRCINFO'
+
+      - name: Check .SRCINFO up to date
+        run: |
+          git diff --exit-code packaging/arch/.SRCINFO
