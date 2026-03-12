@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+user="${SUDO_USER:-}"
+if [ -n "$user" ]; then
+    user_home="$(getent passwd "$user" | cut -d: -f6)"
+    if [ -n "$user_home" ]; then
+        install -Dm755 /usr/share/sshtm/bin/sshtm "$user_home/.local/bin/sshtm"
+        install -Dm755 /usr/share/sshtm/bin/sshtmd "$user_home/.local/bin/sshtmd"
+        install -Dm755 /usr/share/sshtm/uninstall.sh "$user_home/.local/share/sshtm/scripts/uninstall.sh"
+
+        su - "$user" -c "systemctl --user daemon-reload" 2>/dev/null || true
+        su - "$user" -c "systemctl --user enable sshtmd" 2>/dev/null || true
+        su - "$user" -c "systemctl --user restart sshtmd" 2>/dev/null || true
+    fi
+fi
+
+exit 0

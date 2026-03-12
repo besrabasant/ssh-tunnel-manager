@@ -3,10 +3,11 @@
 dh $@
 
 override_dh_auto_build:
-make
+make GOFLAGS="-trimpath"
 
 override_dh_auto_install:
-install -Dm755 sshtm debian/sshtm/usr/bin/sshtm
-install -Dm755 sshtmd debian/sshtm/usr/bin/sshtmd
+install -Dm755 sshtm debian/sshtm/usr/share/sshtm/bin/sshtm
+install -Dm755 sshtmd debian/sshtm/usr/share/sshtm/bin/sshtmd
 install -Dm755 scripts/uninstall.sh debian/sshtm/usr/share/sshtm/uninstall.sh
+install -Dm644 packaging/sshtm.path.sh debian/sshtm/etc/profile.d/sshtm.sh
 install -Dm644 packaging/sshtmd.service debian/sshtm/usr/lib/systemd/user/sshtmd.service
