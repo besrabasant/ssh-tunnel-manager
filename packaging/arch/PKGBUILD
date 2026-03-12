@@ -9,8 +9,8 @@ depend=("openssh")
 makedepends=('go' 'git' 'make')
 source=(
     "$pkgname-$pkgver.tar.gz::https://github.com/besrabasant/ssh-tunnel-manager/archive/refs/tags/v$pkgver.tar.gz"
-    "file://$startdir/../sshtm.path.sh"
-    "file://$startdir/../sshtmd.service"
+    "sshtm.path.sh"
+    "sshtmd.service"
     "sshtm.install"
 )
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
