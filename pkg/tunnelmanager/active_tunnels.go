@@ -18,7 +18,7 @@ type ActiveTunnel struct {
 }
 
 // SaveActiveTunnels persists current active tunnels to the given file.
-func (m *TunnelManager) SaveActiveTunnels(path string) error {
+func (m *tunnelManager) SaveActiveTunnels(path string) error {
 	tunnels := make([]ActiveTunnel, 0)
 	savedAt := time.Now().UTC().Format(time.RFC3339)
 	m.Mutex.Lock()

@@ -7,42 +7,20 @@ import (
 
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
-	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsRequest, manager *tunnelmanager.TunnelManager) (*rpc.ListActiveTunnelsResponse, error) {
+func ListActiveTunnelsTask(ctx context.Context, req *rpc.ListActiveTunnelsRequest, service tunnelmanager.TunnelService) (*rpc.ListActiveTunnelsResponse, error) {
+	tunnels, err := service.ListActiveTunnels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var output strings.Builder
-
-	output.WriteString("\n")
-
-	if len(manager.Connections) > 0 {
-		for port, conn := range manager.Connections {
-			// config is prented without a new line at its end.
-			writeTunnelsToOutput(&output, port, conn)
-			output.WriteString("\n")
-		}
-	} else {
-		output.WriteString("No active connections found.\n")
+	output.WriteString("\nActive Tunnels:\n")
+	output.WriteString("---------------\n")
+	for _, t := range tunnels {
+		output.WriteString(fmt.Sprintf("Config: %s, Local Port: %d, Remote: %s, Server: %s\n", t.ConfigName, t.LocalPort, t.RemoteAddr, t.Server))
 	}
 
 	return &rpc.ListActiveTunnelsResponse{Result: output.String()}, nil
-}
-
-func writeTunnelsToOutput(out *strings.Builder, port int, conn *tunnelmanager.ConnectionInfo) {
-	template := `:%s
- - Connection:     		%s
- - Remote Address: 		%s
- - Local Address:		%s
- - SSH server:			%s
-`
-	portStr := utils.Bold(fmt.Sprint(port))
-	out.Write([]byte(
-		fmt.Sprintf(
-			template,
-			portStr,
-			conn.Config.Name,
-			conn.RemoteAddr,
-			conn.LocalAddr,
-			conn.Config.Server,
-		)))
 }

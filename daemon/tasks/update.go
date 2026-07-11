@@ -12,17 +12,21 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest, manager *tunnelmanager.TunnelManager) (*rpc.AddOrUpdateConfigurationResponse, error) {
+func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest, service tunnelmanager.TunnelService) (*rpc.AddOrUpdateConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
 
-	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
-		return req.Name == c.Config.Name
-	})
+	// Check for open connections
+	connections := service.GetManager().GetConnections()
+	var openConns tunnelmanager.SSHConnections = make(map[int]*tunnelmanager.ConnectionInfo)
+	for port, ci := range connections {
+		if ci.Config.Name == req.Name {
+			openConns[port] = ci
+		}
+	}
 
 	if len(openConns) > 0 {
-
 		var ports []int
 		for port := range openConns {
 			ports = append(ports, port)

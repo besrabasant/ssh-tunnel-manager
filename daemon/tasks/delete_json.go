@@ -11,21 +11,22 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func DeleteConfigurationJSON(ctx context.Context, req *pb.DeleteConfigurationRequest, manager *tunnelmanager.TunnelManager) (*pb.MutationResponse, error) {
+func DeleteConfigurationJSON(ctx context.Context, req *pb.DeleteConfigurationRequest, service tunnelmanager.TunnelService) (*pb.MutationResponse, error) {
 	if req == nil || req.Name == "" {
 		return &pb.MutationResponse{Status: pb.ResponseStatus_Error, Message: "missing config name"}, nil
 	}
 
 	// Block delete if active connection exists
-	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
-		return req.Name == c.Config.Name
-	})
-	if len(openConns) > 0 {
-		var port int
-		for p := range openConns {
+	connections := service.GetManager().GetConnections()
+	var port int = -1
+	for p, ci := range connections {
+		if ci.Config.Name == req.Name {
 			port = p
 			break
 		}
+	}
+
+	if port != -1 {
 		return &pb.MutationResponse{
 			Status:  pb.ResponseStatus_Error,
 			Message: fmt.Sprintf("Cannot delete configuration: connection open on port %d", port),

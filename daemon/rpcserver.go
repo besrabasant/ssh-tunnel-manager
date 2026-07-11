@@ -10,11 +10,11 @@ import (
 
 type server struct {
 	rpc.UnimplementedDaemonServiceServer
-	manager *tunnelmanager.TunnelManager
+	service tunnelmanager.TunnelService
 }
 
-func (s *server) RegisterTunnelManger(manager *tunnelmanager.TunnelManager) {
-	s.manager = manager
+func (s *server) RegisterTunnelService(service tunnelmanager.TunnelService) {
+	s.service = service
 }
 
 func (s *server) ListConfigurations(ctx context.Context, req *rpc.ListConfigurationsRequest) (*rpc.ListConfigurationsResponse, error) {
@@ -30,11 +30,11 @@ func (s *server) FetchConfiguration(ctx context.Context, req *rpc.FetchConfigura
 }
 
 func (s *server) UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
-	return tasks.UpdateConfiguration(ctx, req, s.manager)
+	return tasks.UpdateConfiguration(ctx, req, s.service)
 }
 
 func (s *server) UpdateConfigurationJSON(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.MutationResponse, error) {
-	return tasks.UpdateConfigurationJSON(ctx, req, s.manager)
+	return tasks.UpdateConfigurationJSON(ctx, req, s.service)
 }
 
 func (s *server) AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequest) (*rpc.AddOrUpdateConfigurationResponse, error) {
@@ -46,26 +46,26 @@ func (s *server) AddConfigurationJSON(ctx context.Context, req *rpc.AddOrUpdateC
 }
 
 func (s *server) DeleteConfiguration(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.DeleteConfigurationResponse, error) {
-	return tasks.DeleteTunnelConfigTask(ctx, req, s.manager)
+	return tasks.DeleteTunnelConfigTask(ctx, req, s.service)
 }
 
 func (s *server) DeleteConfigurationJSON(ctx context.Context, req *rpc.DeleteConfigurationRequest) (*rpc.MutationResponse, error) {
-	return tasks.DeleteConfigurationJSON(ctx, req, s.manager)
+	return tasks.DeleteConfigurationJSON(ctx, req, s.service)
 }
 
 // Tunneling
 func (s *server) StartTunnel(ctx context.Context, req *rpc.StartTunnelRequest) (*rpc.StartTunnelResponse, error) {
-	return tasks.StartTunnelTask(ctx, req, s.manager)
+	return tasks.StartTunnelTask(ctx, req, s.service)
 }
 
 func (s *server) KillTunnel(ctx context.Context, req *rpc.KillTunnelRequest) (*rpc.KillTunnelResponse, error) {
-	return tasks.KillTunnelTask(ctx, req, s.manager)
+	return tasks.KillTunnelTask(ctx, req, s.service)
 }
 
 func (s *server) ListActiveTunnels(ctx context.Context, req *rpc.ListActiveTunnelsRequest) (*rpc.ListActiveTunnelsResponse, error) {
-	return tasks.ListActiveTunnelsTask(ctx, req, s.manager)
+	return tasks.ListActiveTunnelsTask(ctx, req, s.service)
 }
 
 func (s *server) ListActiveTunnelsJSON(ctx context.Context, req *rpc.ListActiveTunnelsJSONRequest) (*rpc.ListActiveTunnelsJSONResponse, error) {
-	return tasks.ListActiveTunnelsJSONTask(ctx, req, s.manager)
+	return tasks.ListActiveTunnelsJSONTask(ctx, req, s.service)
 }

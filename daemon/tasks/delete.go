@@ -12,10 +12,17 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest,  manager *tunnelmanager.TunnelManager) (*rpc.DeleteConfigurationResponse, error) {
+func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationRequest, service tunnelmanager.TunnelService) (*rpc.DeleteConfigurationResponse, error) {
 	var output strings.Builder
 
 	output.WriteString("\n")
+
+	// Check for open connections
+	for port, ci := range service.GetManager().GetConnections() {
+		if ci.Config.Name == req.Name {
+			return nil, fmt.Errorf("cannot delete configuration %q as a connection is open on port %d", req.Name, port)
+		}
+	}
 
 	cfgs, err := getConfigs()
 	if err != nil {
@@ -24,30 +31,6 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 
 	if len(cfgs) == 0 {
 		return &rpc.DeleteConfigurationResponse{Result: "\nNo configurations found\n"}, nil
-	}
-
-	cfgs = configmanager.Entries(cfgs).Filter(func(c *configmanager.Entry) bool {
-		return req.Name == c.Name
-	})
-
-	if len(cfgs) == 0 {
-		return &rpc.DeleteConfigurationResponse{Result: fmt.Sprintf("\nNo configurations found with name %s \n", req.Name)}, nil
-	}
-
-	// Check for open connections
-	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
-		return req.Name == c.Config.Name
-	})
-
-	if len(openConns) > 0 {
-
-		var ports []int
-		for port := range openConns {
-			ports = append(ports, port)
-		}
-
-		output.WriteString(fmt.Sprint("Cannot delete configuration as connection is open on port ", ports[0], "\n"))
-		return &rpc.DeleteConfigurationResponse{Result: output.String()}, nil
 	}
 
 	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
@@ -59,6 +42,10 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 	if err != nil {
 		output.WriteString(fmt.Sprintf("Cannot delete configuration %s: %v", req.Name, err))
 		return &rpc.DeleteConfigurationResponse{Result: output.String()}, nil
+	}
+
+	if err := service.PersistTunnels(); err != nil {
+		output.WriteString(fmt.Sprintf("\nFailed to persist active tunnels: %v\n", err))
 	}
 
 	output.WriteString(fmt.Sprintf("Successfully deleted configuration %s", req.Name))

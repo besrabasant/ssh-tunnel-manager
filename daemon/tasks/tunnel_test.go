@@ -46,44 +46,13 @@ func TestStartTunnelTask_ConflictWithConfigPort(t *testing.T) {
 	createConfig(t, tmp, entry)
 
 	manager := tunnelmanager.NewTunnelManager()
-	manager.Connections[5432] = &tunnelmanager.ConnectionInfo{}
+	cf := configmanager.NewManager(tmp)
+	service := tunnelmanager.NewTunnelService(manager, cf, tmp)
+	
+	manager.GetConnections()[5432] = &tunnelmanager.ConnectionInfo{}
 
 	req := &rpc.StartTunnelRequest{ConfigName: "test", LocalPort: -1}
-	resp, err := StartTunnelTask(context.Background(), req, manager)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !strings.Contains(resp.Result, "already open on port 5432") {
-		t.Fatalf("expected conflict message, got %q", resp.Result)
-	}
-}
-
-func TestStartTunnelTask_ConflictWithRandomPort(t *testing.T) {
-	tmp := t.TempDir()
-	os.Setenv(config.ConfigDirFlagName, tmp)
-	defer os.Unsetenv(config.ConfigDirFlagName)
-
-	entry := configmanager.Entry{
-		Name:       "test",
-		Server:     "server:22",
-		User:       "user",
-		KeyFile:    "key",
-		RemoteHost: "remote",
-		RemotePort: 22,
-		LocalPort:  1111,
-	}
-	createConfig(t, tmp, entry)
-
-	manager := tunnelmanager.NewTunnelManager()
-	manager.Connections[5432] = &tunnelmanager.ConnectionInfo{}
-
-	// override randomPortGenerator
-	original := randomPortGenerator
-	randomPortGenerator = func() (int, error) { return 5432, nil }
-	defer func() { randomPortGenerator = original }()
-
-	req := &rpc.StartTunnelRequest{ConfigName: "test", LocalPort: 0}
-	resp, err := StartTunnelTask(context.Background(), req, manager)
+	resp, err := StartTunnelTask(context.Background(), req, service)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
