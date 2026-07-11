@@ -4,7 +4,7 @@ SSH Tunnel Manager (**sshtm**) allows you to manage SSH tunnel configurations fo
 
 ## Current Version
 
-**SSH Tunnel Manager (sshtm) v1.1.2**
+**SSH Tunnel Manager (sshtm) v1.1.3**
 
 Ensure you are using the latest version to benefit from the newest features and improvements.
 
@@ -59,7 +59,7 @@ Build a deb package using the files in `packaging/debian`:
 ```sh
 cd packaging/debian
 dpkg-buildpackage -us -uc
-sudo dpkg -i ../sshtm_1.1.2-1_amd64.deb
+sudo dpkg -i ../sshtm_1.1.3-1_amd64.deb
 ```
 
 ## Uninstallation
