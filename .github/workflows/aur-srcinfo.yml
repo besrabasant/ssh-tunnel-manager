@@ -25,9 +25,9 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           useradd -m build
-          chown -R build:build "$GITHUB_WORKSPACE"
+          chown -R build:build "$GITHUB_WORKSPACE/packaging/arch"
           runuser -u build -- bash -c "cd '$GITHUB_WORKSPACE/packaging/arch' && makepkg --printsrcinfo > .SRCINFO"
 
       - name: Check .SRCINFO up to date
         run: |
-          runuser -u build -- git -C "$GITHUB_WORKSPACE" diff --exit-code packaging/arch/.SRCINFO
+          git -C "$GITHUB_WORKSPACE" diff --exit-code -- packaging/arch/.SRCINFO
