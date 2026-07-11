@@ -123,3 +123,7 @@ make build_all     # linux + macos
 ## Versioning Policy
 
 This project uses [Semantic Versioning (SemVer)](https://semver.org/) for version numbers.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
