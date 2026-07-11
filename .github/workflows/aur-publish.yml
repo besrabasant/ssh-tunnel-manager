@@ -35,16 +35,17 @@ jobs:
 
       - name: Prepare AUR repo
         run: |
-          cd /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch
-          makepkg --printsrcinfo > .SRCINFO
+          useradd -m build
+          chown -R build:build "$GITHUB_WORKSPACE"
+          su - build -c "cd '$GITHUB_WORKSPACE/packaging/arch' && makepkg --printsrcinfo > .SRCINFO"
           git clone ssh://aur@aur.archlinux.org/sshtm.git /tmp/aur
           cd /tmp/aur
           git rm -r . || true
-          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/PKGBUILD .
-          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/.SRCINFO .
-          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtm.install .
-          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtm.path.sh .
-          cp -a /__w/ssh-tunnel-manager/ssh-tunnel-manager/packaging/arch/sshtmd.service .
+          cp -a "$GITHUB_WORKSPACE/packaging/arch/PKGBUILD" .
+          cp -a "$GITHUB_WORKSPACE/packaging/arch/.SRCINFO" .
+          cp -a "$GITHUB_WORKSPACE/packaging/arch/sshtm.install" .
+          cp -a "$GITHUB_WORKSPACE/packaging/arch/sshtm.path.sh" .
+          cp -a "$GITHUB_WORKSPACE/packaging/arch/sshtmd.service" .
           git add .
           git status --short
 
