@@ -59,7 +59,7 @@ Build a deb package using the files in `packaging/debian`:
 ```sh
 cd packaging/debian
 dpkg-buildpackage -us -uc
-sudo dpkg -i ../sshtm_1.0.7-1_amd64.deb
+sudo dpkg -i ../sshtm_1.1.0-1_amd64.deb
 ```
 
 ## Uninstallation
