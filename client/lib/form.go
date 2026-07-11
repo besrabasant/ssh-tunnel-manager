@@ -16,6 +16,8 @@ type ConfigurationFormData struct {
 }
 
 func ConfigurationForm(formConfig ConfigurationFormData, app *tview.Application, data *rpc.TunnelConfig, updateFn func(data *rpc.TunnelConfig)) *tview.Form {
+	app.SetInputCapture(configurationFormInputCapture(app))
+
 	defaultFieldWidth := 40
 	form := tview.NewForm().
 		SetFieldBackgroundColor(tcell.ColorDefault).
@@ -117,4 +119,14 @@ func ConfigurationForm(formConfig ConfigurationFormData, app *tview.Application,
 
 	form.SetBorder(true).SetTitle(formConfig.Title).SetTitleAlign(tview.AlignLeft)
 	return form
+}
+
+func configurationFormInputCapture(app *tview.Application) func(*tcell.EventKey) *tcell.EventKey {
+	return func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlC {
+			app.Stop()
+			return nil
+		}
+		return event
+	}
 }
