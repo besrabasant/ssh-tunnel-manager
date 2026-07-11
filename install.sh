@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+log_step() {
+	echo "🚀 [sshtm] $1"
+}
+
+log_step "Starting installation"
+
 # Paths (all user-scoped)
 DATA_DIR="$HOME/.ssh-tunnel-manager" # application data/config root
 
@@ -33,6 +39,9 @@ else
 	UNIT_FILE="$SYSTEMD_USER_DIR/sshtmd.service"   # systemd unit file path
 fi
 
+log_step "🔍 Detected $OS_NAME/$ARCH_NAME"
+log_step "📦 Installing protoc-gen-go-grpc"
+
 # Ensure protoc gRPC plugin is available
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 
@@ -45,10 +54,13 @@ else
 fi
 SRC_DAEMON="sshtmd-${TARGET_OS}-${ARCH_NAME}"
 SRC_CLIENT="sshtm-${TARGET_OS}-${ARCH_NAME}"
+log_step "🔨 Building daemon binary: $SRC_DAEMON"
 GOOS="$TARGET_OS" GOARCH="$ARCH_NAME" go build -o "$SRC_DAEMON" ./daemon
+log_step "🔨 Building client binary: $SRC_CLIENT"
 GOOS="$TARGET_OS" GOARCH="$ARCH_NAME" go build -o "$SRC_CLIENT" ./client
 
 # Create required directories
+log_step "📁 Creating application directories"
 if [ "$OS_NAME" = "Darwin" ]; then
 	mkdir -p "$LAUNCH_AGENTS_DIR"
 else
@@ -59,6 +71,7 @@ mkdir -p "$SHARE_DIR"
 mkdir -p "$BIN_DIR"
 
 # Stop existing service before replacing binaries
+log_step "⏹️ Stopping existing daemon service, if running"
 if [ "$OS_NAME" = "Darwin" ]; then
 	if launchctl list | grep -q "com.sshtm.daemon"; then
 		launchctl unload "$PLIST_FILE" || true
@@ -70,15 +83,18 @@ else
 fi
 
 # Install/overwrite binaries in-place (updates existing installations)
+log_step "📥 Installing binaries into $BIN_DIR"
 install -m 755 -T "$SRC_DAEMON" "$DAEMON_BIN"
 install -m 755 -T "$SRC_CLIENT" "$CLIENT_BIN"
 
 # Refresh bundled scripts directory
+log_step "📜 Installing bundled scripts into $SCRIPTS_DIR"
 rm -rf "$SCRIPTS_DIR"
 cp -r scripts "$SHARE_DIR/"
 
 # Register and start the daemon as a user service
 if [ "$OS_NAME" = "Darwin" ]; then
+	log_step "🍎 Registering and starting launchd agent"
 	cat <<EOF > "$PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -101,6 +117,7 @@ EOF
 	# Load/enable launchd agent
 	launchctl load "$PLIST_FILE"
 else
+	log_step "⚙️ Registering systemd user service"
 	cat <<EOF > "$UNIT_FILE"
 [Unit]
 Description=SSH Tunnel Manager Daemon
@@ -114,15 +131,21 @@ WantedBy=default.target
 EOF
 
 	# Reload, enable, and start systemd user service
+	log_step "🔄 Reloading systemd user units"
 	systemctl --user daemon-reload
 
 	# Enable and start the service
+	log_step "✅ Enabling sshtmd service"
 	systemctl --user enable sshtmd
 
 	# If the service is already running, restart it. Otherwise start it normally.
 	if systemctl --user is-active --quiet sshtmd; then
+		log_step "🔁 Restarting sshtmd service"
 		systemctl --user restart sshtmd
 	else
+		log_step "▶️ Starting sshtmd service"
 		systemctl --user start sshtmd
 	fi
 fi
+
+log_step "🎉 Installation complete"
