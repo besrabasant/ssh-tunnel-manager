@@ -1,6 +1,6 @@
 package config
 
-var AppVersion = "1.1.1"
+var AppVersion = "1.1.2"
 
 const DefaultSSHPort = "22"
 
