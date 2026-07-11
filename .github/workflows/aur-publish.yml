@@ -33,6 +33,11 @@ jobs:
           chmod 600 /root/.ssh/id_ed25519
           ssh-keyscan -H aur.archlinux.org >> /root/.ssh/known_hosts
 
+      - name: Sync package version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          ./scripts/update-version.sh "${GITHUB_REF_NAME}"
+
       - name: Prepare AUR repo
         run: |
           useradd -m build
