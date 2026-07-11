@@ -11,21 +11,22 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
-func UpdateConfigurationJSON(ctx context.Context, req *pb.AddOrUpdateConfigurationRequest, manager *tunnelmanager.TunnelManager) (*pb.MutationResponse, error) {
+func UpdateConfigurationJSON(ctx context.Context, req *pb.AddOrUpdateConfigurationRequest, service tunnelmanager.TunnelService) (*pb.MutationResponse, error) {
 	if req == nil || req.Data == nil || req.Data.Name == "" {
 		return &pb.MutationResponse{Status: pb.ResponseStatus_Error, Message: "missing config name"}, nil
 	}
 
 	// Block update if there's an active connection using this config (same behavior as legacy string RPC)
-	openConns := manager.Connections.Filter(func(c *tunnelmanager.ConnectionInfo) bool {
-		return req.Name == c.Config.Name
-	})
-	if len(openConns) > 0 {
-		var port int
-		for p := range openConns {
+	connections := service.GetManager().GetConnections()
+	var port int = -1
+	for p, ci := range connections {
+		if ci.Config.Name == req.Name {
 			port = p
 			break
 		}
+	}
+
+	if port != -1 {
 		return &pb.MutationResponse{
 			Status:  pb.ResponseStatus_Error,
 			Message: fmt.Sprintf("Cannot update configuration: connection open on port %d", port),

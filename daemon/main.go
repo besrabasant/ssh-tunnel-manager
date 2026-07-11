@@ -6,14 +6,12 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
-	"github.com/besrabasant/ssh-tunnel-manager/daemon/tasks"
+	"github.com/besrabasant/ssh-tunnel-manager/pkg/configmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
-	"github.com/besrabasant/ssh-tunnel-manager/utils"
 	"google.golang.org/grpc"
 )
 
@@ -25,66 +23,38 @@ func main() {
 
 	s := grpc.NewServer()
 
-	rpServer := &server{}
+	// Initialize components
+	m := tunnelmanager.NewTunnelManager()
+	cf := configmanager.NewManager(config.DefaultConfigDir)
+	svc := tunnelmanager.NewTunnelService(m, cf, config.DefaultConfigDir)
+
+	rpServer := &server{service: svc}
 	rpc.RegisterDaemonServiceServer(s, rpServer)
 
-	m := tunnelmanager.NewTunnelManager()
-	rpServer.RegisterTunnelManger(m)
-
 	// restore tunnels that were active before restart
-	restoreTunnels(m)
+	if err := svc.RestoreTunnels(context.Background()); err != nil {
+		log.Printf("failed to restore tunnels: %v", err)
+	}
 
 	// handle shutdown signals and persist tunnels
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		persistTunnels(m)
+		if err := svc.PersistTunnels(); err != nil {
+			log.Printf("failed to persist tunnels during shutdown: %v", err)
+		}
 		os.Exit(0)
 	}()
 
 	log.Printf("server listening at %v", lis.Addr())
 
 	if err := s.Serve(lis); err != nil {
-		persistTunnels(m)
+		if err := svc.PersistTunnels(); err != nil {
+			log.Printf("failed to persist tunnels during error: %v", err)
+		}
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
-func restoreTunnels(m *tunnelmanager.TunnelManager) {
-	dirpath := config.DefaultConfigDir
-	if v := os.Getenv(config.ConfigDirFlagName); v != "" {
-		dirpath = v
-	}
-	configdir, err := utils.ResolveDir(dirpath)
-	if err != nil {
-		log.Printf("failed to resolve config dir: %v", err)
-		return
-	}
-	activeFile := filepath.Join(configdir, config.ActiveTunnelsFile)
-	tunnels, err := tunnelmanager.LoadActiveTunnels(activeFile)
-	if err != nil {
-		log.Printf("failed to load active tunnels: %v", err)
-		return
-	}
-	for _, t := range tunnels {
-		if _, err := tasks.StartTunnelTask(context.Background(), &rpc.StartTunnelRequest{ConfigName: t.ConfigName, LocalPort: int32(t.LocalPort)}, m); err != nil {
-			log.Printf("failed to restore tunnel %s: %v", t.ConfigName, err)
-		}
-	}
-}
-
-func persistTunnels(m *tunnelmanager.TunnelManager) {
-	dirpath := config.DefaultConfigDir
-	if v := os.Getenv(config.ConfigDirFlagName); v != "" {
-		dirpath = v
-	}
-	configdir, err := utils.ResolveDir(dirpath)
-	if err != nil {
-		log.Printf("failed to resolve config dir: %v", err)
-		return
-	}
-	if err := m.SaveActiveTunnels(filepath.Join(configdir, config.ActiveTunnelsFile)); err != nil {
-		log.Printf("failed to save active tunnels: %v", err)
-	}
-}
+// remove unused functions

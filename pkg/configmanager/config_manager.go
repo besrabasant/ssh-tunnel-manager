@@ -70,6 +70,7 @@ type ConfigManager interface {
 	GetConfiguration(entryName string) (Entry, error)
 	GetConfigurations() ([]Entry, error)
 	AddConfiguration(entry Entry) error
+	UpdateConfiguration(entry Entry) error
 	RemoveConfiguration(entryName string) error
 }
 
@@ -78,7 +79,7 @@ type manager struct {
 	dir string
 }
 
-func NewManager(dir string) *manager {
+func NewManager(dir string) ConfigManager {
 	m := &manager{dir: dir}
 	if err := m.ensurePersistenceDirExists(); err != nil {
 		panic(err)
