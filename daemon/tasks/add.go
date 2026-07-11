@@ -17,7 +17,7 @@ func AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequ
 
 	cfgs, err := getConfigs()
 	if err != nil {
-		return &rpc.AddOrUpdateConfigurationResponse{Result: "\nError while adding configurations found\n"}, nil
+		return mutationResponse("\nError while adding configurations found\n", rpc.ResponseStatus_Error, "Error while reading configurations"), nil
 	}
 
 	cfgs = configmanager.Entries(cfgs).Filter(func(c *configmanager.Entry) bool {
@@ -25,9 +25,9 @@ func AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequ
 	})
 
 	if len(cfgs) > 0 {
-		return &rpc.AddOrUpdateConfigurationResponse{Result: fmt.Sprintf("\nA congiguration already exits with name %s \n", req.Name)},nil
+		message := fmt.Sprintf("A configuration already exists with name %s", req.Name)
+		return mutationResponse(fmt.Sprintf("\nA congiguration already exits with name %s \n", req.Name), rpc.ResponseStatus_Error, message), nil
 	}
-
 
 	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
 	if err != nil {
@@ -36,11 +36,18 @@ func AddConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationRequ
 
 	err = configmanager.NewManager(configdir).AddConfiguration(*configmanager.ConvertRpcTunnelConfigToConfig(req.Data))
 	if err != nil {
-		output.WriteString(fmt.Sprintf("Cannot add configuration %s: %v", req.Name, err))
-		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
+		message := fmt.Sprintf("Cannot add configuration %s: %v", req.Name, err)
+		output.WriteString(message)
+		return mutationResponse(output.String(), rpc.ResponseStatus_Error, message), nil
 	}
 
+	message := fmt.Sprintf("Successfully added new configuration %s", req.Name)
 	output.WriteString(fmt.Sprintf("Successfully add new configuration %s", req.Name))
 
-	return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
+	return &rpc.AddOrUpdateConfigurationResponse{
+		Result:  output.String(),
+		Status:  rpc.ResponseStatus_Success,
+		Message: message,
+		Data:    req.Data,
+	}, nil
 }

@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/spf13/cobra"
@@ -36,6 +38,6 @@ Use this command to ensure that your SSH tunnels are running as expected, or to 
 			fmt.Printf("could not execute command: %v", err)
 			return
 		}
-		fmt.Printf("%s", r.GetResult())
+		fmt.Print(formatters.NewActiveTunnelsFormatter(os.Stdout).Format(r))
 	},
 }

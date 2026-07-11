@@ -40,9 +40,10 @@ else
 fi
 
 log_step "🔍 Detected $OS_NAME/$ARCH_NAME"
-log_step "📦 Installing protoc-gen-go-grpc"
+log_step "📦 Installing protobuf code-generation plugins"
 
-# Ensure protoc gRPC plugin is available
+# Ensure protobuf and gRPC plugins are available
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 
 # Build binaries for the detected OS/arch

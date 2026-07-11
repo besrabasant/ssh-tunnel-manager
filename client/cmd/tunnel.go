@@ -3,18 +3,20 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/spf13/cobra"
 )
 
 var StartSshTunnelCmd = &cobra.Command{
-	Use:   "tunnel <configuration name> [local port]",
+	Use:     "tunnel <configuration name> [local port]",
 	Aliases: []string{"t"},
-	Short: "Start an SSH tunnel using a saved configuration, optionally specifying a local port.",
+	Short:   "Start an SSH tunnel using a saved configuration, optionally specifying a local port.",
 	Long: `
 Start an SSH tunnel using a predefined configuration, with the option to specify a local port for forwarding.
 
@@ -73,6 +75,6 @@ Usage:
 			return
 		}
 
-		fmt.Printf("%s", r.GetResult())
+		fmt.Print(formatters.NewOperationFormatter(os.Stdout).Format(formatters.OperationFromStart(r)))
 	},
 }

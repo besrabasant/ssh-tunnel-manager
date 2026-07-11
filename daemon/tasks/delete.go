@@ -26,11 +26,11 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 
 	cfgs, err := getConfigs()
 	if err != nil {
-		return &rpc.DeleteConfigurationResponse{Result: "\nError while reading configurations found\n"}, nil
+		return &rpc.DeleteConfigurationResponse{Result: "\nError while reading configurations found\n", Status: rpc.ResponseStatus_Error, Message: "Error while reading configurations"}, nil
 	}
 
 	if len(cfgs) == 0 {
-		return &rpc.DeleteConfigurationResponse{Result: "\nNo configurations found\n"}, nil
+		return &rpc.DeleteConfigurationResponse{Result: "\nNo configurations found\n", Status: rpc.ResponseStatus_Error, Message: "No configurations found"}, nil
 	}
 
 	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
@@ -40,15 +40,17 @@ func DeleteTunnelConfigTask(ctx context.Context, req *rpc.DeleteConfigurationReq
 
 	err = configmanager.NewManager(configdir).RemoveConfiguration(req.GetName())
 	if err != nil {
-		output.WriteString(fmt.Sprintf("Cannot delete configuration %s: %v", req.Name, err))
-		return &rpc.DeleteConfigurationResponse{Result: output.String()}, nil
+		message := fmt.Sprintf("Cannot delete configuration %s: %v", req.Name, err)
+		output.WriteString(message)
+		return &rpc.DeleteConfigurationResponse{Result: output.String(), Status: rpc.ResponseStatus_Error, Message: message}, nil
 	}
 
 	if err := service.PersistTunnels(); err != nil {
 		output.WriteString(fmt.Sprintf("\nFailed to persist active tunnels: %v\n", err))
 	}
 
-	output.WriteString(fmt.Sprintf("Successfully deleted configuration %s", req.Name))
+	message := fmt.Sprintf("Successfully deleted configuration %s", req.Name)
+	output.WriteString(message)
 
-	return &rpc.DeleteConfigurationResponse{Result: output.String()}, nil
+	return &rpc.DeleteConfigurationResponse{Result: output.String(), Status: rpc.ResponseStatus_Success, Message: message}, nil
 }

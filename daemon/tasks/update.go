@@ -32,8 +32,9 @@ func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationR
 			ports = append(ports, port)
 		}
 
-		output.WriteString(fmt.Sprint("Cannot update configuration as connection is open on port ", ports[0], "\n"))
-		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
+		message := fmt.Sprint("Cannot update configuration as connection is open on port ", ports[0])
+		output.WriteString(message + "\n")
+		return mutationResponse(output.String(), rpc.ResponseStatus_Error, message), nil
 	}
 
 	configdir, err := utils.ResolveDir(config.DefaultConfigDir)
@@ -43,11 +44,18 @@ func UpdateConfiguration(ctx context.Context, req *rpc.AddOrUpdateConfigurationR
 
 	err = configmanager.NewManager(configdir).UpdateConfiguration(*configmanager.ConvertRpcTunnelConfigToConfig(req.Data))
 	if err != nil {
-		output.WriteString(fmt.Sprintf("Cannot update configuration %s: %v", req.Name, err))
-		return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
+		message := fmt.Sprintf("Cannot update configuration %s: %v", req.Name, err)
+		output.WriteString(message)
+		return mutationResponse(output.String(), rpc.ResponseStatus_Error, message), nil
 	}
 
-	output.WriteString(fmt.Sprintf("Successfully updated configuration %s", req.Name))
+	message := fmt.Sprintf("Successfully updated configuration %s", req.Name)
+	output.WriteString(message)
 
-	return &rpc.AddOrUpdateConfigurationResponse{Result: output.String()}, nil
+	return &rpc.AddOrUpdateConfigurationResponse{
+		Result:  output.String(),
+		Status:  rpc.ResponseStatus_Success,
+		Message: message,
+		Data:    req.Data,
+	}, nil
 }

@@ -3,9 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/spf13/cobra"
@@ -64,6 +66,6 @@ Example Usage:
 			return
 		}
 
-		fmt.Printf("%s", r.GetResult())
+		fmt.Print(formatters.NewMutationFormatter(os.Stdout).Format(formatters.MutationFromKill(r)))
 	},
 }

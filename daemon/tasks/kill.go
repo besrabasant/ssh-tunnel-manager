@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/pkg/tunnelmanager"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
@@ -12,5 +13,5 @@ func KillTunnelTask(ctx context.Context, req *rpc.KillTunnelRequest, service tun
 	if err != nil {
 		return nil, err
 	}
-	return &rpc.KillTunnelResponse{Result: result}, nil
+	return &rpc.KillTunnelResponse{Result: result, Status: rpc.ResponseStatus_Success, Message: strings.TrimSpace(result)}, nil
 }

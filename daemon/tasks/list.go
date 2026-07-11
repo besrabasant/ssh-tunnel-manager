@@ -76,10 +76,38 @@ func ListConfigurationTask(ctx context.Context, req *pb.ListConfigurationsReques
 		output.WriteString("\n")
 	}
 
-	return &pb.ListConfigurationsResponse{Result: output.String()}, nil
+	configs := make([]*pb.TunnelConfig, 0, len(cfgs))
+	for i := range cfgs {
+		configs = append(configs, configmanager.ConvertConfigToRpcTunnelConfig(&cfgs[i]))
+	}
+
+	return &pb.ListConfigurationsResponse{Result: output.String(), Configs: configs}, nil
 }
 
 func writeConfigToOutput(out *strings.Builder, entry configmanager.Entry) {
+	nameAndDesc := entry.Name
+	if strings.TrimSpace(entry.Description) != "" {
+		nameAndDesc += " (" + entry.Description + ")"
+	}
+	localPort := utils.IntToString(entry.LocalPort)
+	localPortDisplay := localPort
+	if localPortDisplay == "" {
+		localPortDisplay = "auto"
+	}
+	localAddress := "auto"
+	if localPort != "" {
+		localAddress = "127.0.0.1:" + localPort
+	}
+	out.WriteString(fmt.Sprintf(":%s\n", localPortDisplay))
+	out.WriteString(fmt.Sprintf("- Connection:                  %s\n", nameAndDesc))
+	out.WriteString(fmt.Sprintf("- Remote Address:              %s:%d\n", entry.RemoteHost, entry.RemotePort))
+	out.WriteString(fmt.Sprintf("- Local Address:               %s\n", localAddress))
+	out.WriteString(fmt.Sprintf("- SSH server:                  %s\n", entry.Server))
+	out.WriteString(fmt.Sprintf("- User:                        %s\n", entry.User))
+	out.WriteString(fmt.Sprintf("- Private key:                 %s", entry.KeyFile))
+}
+
+func writeConfigToOutputLegacy(out *strings.Builder, entry configmanager.Entry) {
 	template := `%s
   - SSH server:  		%s
   - User:        		%s

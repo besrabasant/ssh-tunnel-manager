@@ -54,6 +54,7 @@ message ListConfigurationsRequest {
 
 message ListConfigurationsResponse {
   string result = 1;
+  repeated TunnelConfig configs = 2;
 }
 
 message ListConfigurationsJSONRequest {}
@@ -75,6 +76,9 @@ message AddOrUpdateConfigurationRequest {
 
 message AddOrUpdateConfigurationResponse {
   string result = 1;
+  ResponseStatus status = 2;
+  string message = 3;
+  TunnelConfig data = 4;
 }
 
 
@@ -94,6 +98,8 @@ message DeleteConfigurationRequest {
 
 message DeleteConfigurationResponse {
   string result = 1;
+  ResponseStatus status = 2;
+  string message = 3;
 }
 
 
@@ -104,6 +110,9 @@ message StartTunnelRequest {
 
 message StartTunnelResponse {
   string result = 1;
+  ResponseStatus status = 2;
+  string message = 3;
+  repeated string events = 4;
 }
 
 message ListActiveTunnelsRequest {
@@ -111,6 +120,7 @@ message ListActiveTunnelsRequest {
 
 message ListActiveTunnelsResponse {
   string result = 1;
+  repeated ActiveTunnel tunnels = 2;
 }
 
 message ActiveTunnel {
@@ -134,4 +144,6 @@ message KillTunnelRequest {
 
 message KillTunnelResponse {
   string result = 1;
+  ResponseStatus status = 2;
+  string message = 3;
 }

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/besrabasant/ssh-tunnel-manager/config"
+	"github.com/besrabasant/ssh-tunnel-manager/utils"
 )
 
 // Entry is an SSH configuration entry
@@ -80,7 +81,12 @@ type manager struct {
 }
 
 func NewManager(dir string) ConfigManager {
-	m := &manager{dir: dir}
+	resolvedDir, err := utils.ResolveDir(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	m := &manager{dir: resolvedDir}
 	if err := m.ensurePersistenceDirExists(); err != nil {
 		panic(err)
 	}
@@ -89,7 +95,7 @@ func NewManager(dir string) ConfigManager {
 
 func (m *manager) ensurePersistenceDirExists() error {
 	if _, err := os.Stat(m.dir); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(m.dir, os.ModePerm)
+		err := os.MkdirAll(m.dir, os.ModePerm)
 		if err != nil {
 			return fmt.Errorf("couldn't create directory %s: %v", m.dir, err)
 		}

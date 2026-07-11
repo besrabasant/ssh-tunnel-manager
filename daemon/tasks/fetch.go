@@ -8,7 +8,6 @@ import (
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 )
 
-
 func FetchTunnelConfigTask(ctx context.Context, req *rpc.FetchConfigurationRequest) (*rpc.FetchConfigurationResponse, error) {
 	cfgs, err := getConfigs()
 	if err != nil {
