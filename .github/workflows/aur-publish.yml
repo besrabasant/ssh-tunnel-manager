@@ -42,7 +42,7 @@ jobs:
         run: |
           useradd -m build
           chown -R build:build "$GITHUB_WORKSPACE"
-          su - build -c "cd '$GITHUB_WORKSPACE/packaging/arch' && makepkg --printsrcinfo > .SRCINFO"
+          runuser -u build -- bash -c "cd '$GITHUB_WORKSPACE/packaging/arch' && makepkg --printsrcinfo > .SRCINFO"
           git clone ssh://aur@aur.archlinux.org/sshtm.git /tmp/aur
           cd /tmp/aur
           git rm -r . || true

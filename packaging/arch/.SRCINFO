@@ -6,6 +6,7 @@ pkgbase = sshtm
 	install = sshtm.install
 	arch = x86_64
 	license = custom
+	depends = openssh
 	makedepends = go
 	makedepends = git
 	makedepends = make
