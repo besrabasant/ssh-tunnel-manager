@@ -30,4 +30,4 @@ jobs:
 
       - name: Check .SRCINFO up to date
         run: |
-          git -C "$GITHUB_WORKSPACE" diff --exit-code packaging/arch/.SRCINFO
+          runuser -u build -- git -C "$GITHUB_WORKSPACE" diff --exit-code packaging/arch/.SRCINFO
