@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/rivo/tview"
@@ -58,7 +60,7 @@ Example Usage:
 		status := r.GetStatus()
 
 		if status == rpc.ResponseStatus_Error {
-			fmt.Printf("%s", r.GetMessage())
+			fmt.Print(formatters.NewFetchFormatter(os.Stdout).Format(r))
 			return
 		}
 
@@ -84,7 +86,7 @@ Example Usage:
 				return
 			}
 
-			fmt.Printf("%s", r.GetResult())
+			fmt.Print(formatters.NewMutationFormatter(os.Stdout).Format(formatters.MutationFromAddOrUpdate(r)))
 		})
 
 		if err := app.SetRoot(editForm, true).EnableMouse(true).EnablePaste(true).Run(); err != nil {

@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	"github.com/besrabasant/ssh-tunnel-manager/rpc"
 	"github.com/rivo/tview"
@@ -12,9 +14,9 @@ import (
 )
 
 var AddConfigurationsCmd = &cobra.Command{
-	Use:   "add",
+	Use:     "add",
 	Aliases: []string{"a"},
-	Short: "Add a new SSH tunnel configuration",
+	Short:   "Add a new SSH tunnel configuration",
 	Long: `
 Add a new SSH tunnel configuration using an interactive form.
 
@@ -60,7 +62,7 @@ Examples:
 				return
 			}
 
-			fmt.Printf("%s", r.GetResult())
+			fmt.Print(formatters.NewMutationFormatter(os.Stdout).Format(formatters.MutationFromAddOrUpdate(r)))
 		})
 
 		if err := app.SetRoot(addForm, true).EnableMouse(true).EnablePaste(true).Run(); err != nil {

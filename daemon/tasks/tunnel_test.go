@@ -48,7 +48,7 @@ func TestStartTunnelTask_ConflictWithConfigPort(t *testing.T) {
 	manager := tunnelmanager.NewTunnelManager()
 	cf := configmanager.NewManager(tmp)
 	service := tunnelmanager.NewTunnelService(manager, cf, tmp)
-	
+
 	manager.GetConnections()[5432] = &tunnelmanager.ConnectionInfo{}
 
 	req := &rpc.StartTunnelRequest{ConfigName: "test", LocalPort: -1}

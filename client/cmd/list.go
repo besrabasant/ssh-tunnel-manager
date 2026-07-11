@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/besrabasant/ssh-tunnel-manager/client/formatters"
 	"github.com/besrabasant/ssh-tunnel-manager/client/lib"
 	pb "github.com/besrabasant/ssh-tunnel-manager/rpc"
 
@@ -48,6 +50,6 @@ Example Usage:
 			fmt.Printf("could not execute command: %v", err)
 			return
 		}
-		fmt.Printf("%s", r.GetResult())
+		fmt.Print(formatters.NewConfigurationListFormatter(os.Stdout).Format(r))
 	},
 }

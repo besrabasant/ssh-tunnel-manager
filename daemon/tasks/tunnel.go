@@ -12,5 +12,6 @@ func StartTunnelTask(ctx context.Context, req *rpc.StartTunnelRequest, service t
 	if err != nil {
 		return nil, err
 	}
-	return &rpc.StartTunnelResponse{Result: result}, nil
+	status, events := operationParts(result)
+	return &rpc.StartTunnelResponse{Result: result, Status: status, Events: events}, nil
 }
