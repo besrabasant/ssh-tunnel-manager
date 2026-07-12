@@ -6,22 +6,18 @@ Current version: **v1.1.5**
 
 ## What it does
 
-- Saves reusable SSH tunnel configurations with names and descriptions.
+- Manages reusable SSH tunnel configurations with names and descriptions.
 - Starts tunnels from saved configurations, equivalent to:
   ```sh
   ssh -L [LOCAL_IP:]LOCAL_PORT:DESTINATION:DESTINATION_PORT [USER@]SSH_SERVER
   ```
-- Lists saved configurations, with optional fuzzy search.
-- Edits and deletes saved configurations.
-- Lists currently active tunnels.
-- Terminates active tunnels by configuration name or local port.
 - Runs through a background daemon (`sshtmd`) that the CLI (`sshtm`) communicates with over gRPC.
 
 ## Requirements
 
 - **Go 1.25 or later** for building from source.
 - **Git** for cloning the repository.
-- **OpenSSH client** available on your system for SSH connectivity.
+
 - **systemd user services** on Linux or **LaunchAgents** on macOS for the installed daemon service.
 - **Air** *(optional)* for live reload during development.
 
