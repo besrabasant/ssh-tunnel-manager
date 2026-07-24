@@ -132,9 +132,10 @@ func NewTunnelManager() TunnelManager {
 	}
 }
 
-func (m *tunnelManager) CreateResultChannels() {
+func (m *tunnelManager) CreateResultChannels() (chan string, chan error) {
 	m.ResultChan = make(chan string, 1)
 	m.ErrChan = make(chan error, 1)
+	return m.ResultChan, m.ErrChan
 }
 
 func (m *tunnelManager) GetResultChan() <-chan string {
@@ -153,10 +154,10 @@ func (m *tunnelManager) Shutdown() {
 	close(m.shutdown)
 }
 
-func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.Entry, localPort int) {
-	// Defer closing of communication channels
-	defer close(m.ResultChan)
-	defer close(m.ErrChan)
+func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.Entry, localPort int, resultChan chan<- string, errChan chan<- error) {
+	// Defer closing of this start request's communication channels
+	defer close(resultChan)
+	defer close(errChan)
 
 	// Enable lock and ensure it's released on every exit path
 	m.Mutex.Lock()
@@ -164,7 +165,7 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 
 	// Close Existing connections
 	if connInfo, exists := m.Connections[localPort]; exists {
-		m.ResultChan <- fmt.Sprint("Closing existing connection on port ", localPort, "\n")
+		resultChan <- fmt.Sprint("Closing existing connection on port ", localPort, "\n")
 
 		// If there's an existing connection on the same port, close it
 		connInfo.Cancel() // Cancel the context of the existing connection
@@ -175,7 +176,7 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	}
 
 	// Initial status message
-	m.ResultChan <- "Starting tunnel setup...\n"
+	resultChan <- "Starting tunnel setup...\n"
 
 	// The SSH server to connect to. The address can contain a port.
 	sshServer := entry.Server
@@ -212,28 +213,28 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 		if errors.As(serverReadErr, &addrErr) {
 			hasPort := strings.LastIndex(sshServer, ":") != -1
 			if hasPort {
-				m.ErrChan <- fmt.Errorf("bad ssh server address: %v", serverReadErr)
+				errChan <- fmt.Errorf("bad ssh server address: %v", serverReadErr)
 				return
 			} else {
-				m.ResultChan <- fmt.Sprintf("SSH server %q specifies no port. Will use %s\n", sshServer, config.DefaultSSHPort)
+				resultChan <- fmt.Sprintf("SSH server %q specifies no port. Will use %s\n", sshServer, config.DefaultSSHPort)
 				// Use 22 as a default ssh port.
 				sshServer = sshServer + ":" + config.DefaultSSHPort
 			}
 		} else {
-			m.ErrChan <- serverReadErr
+			errChan <- serverReadErr
 		}
 	}
 
 	// Load the private key file
 	privateKey, keyReadErr := readPrivateKeyFile(keyFile)
 	if keyReadErr != nil {
-		m.ErrChan <- keyReadErr
+		errChan <- keyReadErr
 		return
 	}
 
 	key, keyParseErr := ssh.ParsePrivateKey(privateKey)
 	if keyParseErr != nil {
-		m.ErrChan <- fmt.Errorf("couldn't parse private key %q: %v", keyFile, keyParseErr)
+		errChan <- fmt.Errorf("couldn't parse private key %q: %v", keyFile, keyParseErr)
 		return
 	}
 
@@ -251,15 +252,15 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	}
 
 	// Connect to the SSH server
-	m.ResultChan <- fmt.Sprintf("Connecting to %q with a timeout of %s", sshServer, timeout)
+	resultChan <- fmt.Sprintf("Connecting to %q with a timeout of %s", sshServer, timeout)
 
 	client, clientErr := ssh.Dial("tcp", sshServer, config)
 	if clientErr != nil {
-		m.ErrChan <- fmt.Errorf("couldn't connect to SSH server %q: %v", sshServer, clientErr)
+		errChan <- fmt.Errorf("couldn't connect to SSH server %q: %v", sshServer, clientErr)
 		return
 	}
 
-	m.ResultChan <- "\nConnected\n"
+	resultChan <- "\nConnected\n"
 
 	// Set up the local listener
 	var listener net.Listener
@@ -275,7 +276,7 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 	}
 
 	if listenerErr != nil {
-		m.ErrChan <- fmt.Errorf("couldn't set up local listener after retries: %v", listenerErr)
+		errChan <- fmt.Errorf("couldn't set up local listener after retries: %v", listenerErr)
 		return
 	}
 
@@ -287,10 +288,10 @@ func (m *tunnelManager) StartTunneling(ctx context.Context, entry configmanager.
 
 	setupSuccess = true
 
-	m.ResultChan <- "Local listener set up, ready to accept connections.\n"
+	resultChan <- "Local listener set up, ready to accept connections.\n"
 
 	// Start accepting connections on the local listener
-	m.ResultChan <- fmt.Sprintf("Tunneling %q <==> %q through %q\n", localAddress, remoteAddress, sshServer)
+	resultChan <- fmt.Sprintf("Tunneling %q <==> %q through %q\n", localAddress, remoteAddress, sshServer)
 	// Handle incoming connections on local port
 	go m.forwardTunnel(ctx, tunnelCtx, remoteAddress, localPort)
 	go m.monitorTunnel(ctx, tunnelCtx, currentConnInfo, localPort)
