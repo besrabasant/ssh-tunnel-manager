@@ -53,20 +53,20 @@ func (s *tunnelService) StartTunnel(ctx context.Context, configName string, loca
 		}
 	}
 
-	s.manager.CreateResultChannels()
-	go s.manager.StartTunneling(context.Background(), cfg, int(actualPort))
+	resultChan, errChan := s.manager.CreateResultChannels()
+	go s.manager.StartTunneling(context.Background(), cfg, int(actualPort), resultChan, errChan)
 
-	// Collect results
+	// Collect results from the channels created for this start request.
 	var output string
 loop:
 	for {
 		select {
-		case result, ok := <-s.manager.GetResultChan():
+		case result, ok := <-resultChan:
 			if !ok {
 				break loop
 			}
 			output += result + "\n"
-		case err, ok := <-s.manager.GetErrChan():
+		case err, ok := <-errChan:
 			if ok && err != nil {
 				output += fmt.Sprintf("Failed to start tunneling: %v\n", err)
 			}

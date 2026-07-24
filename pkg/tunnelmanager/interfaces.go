@@ -8,8 +8,8 @@ import (
 
 // TunnelManager defines the low-level operations for managing individual SSH tunnels.
 type TunnelManager interface {
-	CreateResultChannels()
-	StartTunneling(ctx context.Context, entry configmanager.Entry, localPort int)
+	CreateResultChannels() (chan string, chan error)
+	StartTunneling(ctx context.Context, entry configmanager.Entry, localPort int, resultChan chan<- string, errChan chan<- error)
 	SaveActiveTunnels(path string) error
 	GetResultChan() <-chan string
 	GetErrChan() <-chan error
