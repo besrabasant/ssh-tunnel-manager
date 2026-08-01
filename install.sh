@@ -40,11 +40,10 @@ else
 fi
 
 log_step "🔍 Detected $OS_NAME/$ARCH_NAME"
-log_step "📦 Installing protobuf code-generation plugins"
-
-# Ensure protobuf and gRPC plugins are available
-go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+log_step "📦 Checking Rust and OpenSSH build requirements"
+command -v cargo >/dev/null || { echo "cargo is required" >&2; exit 1; }
+command -v protoc >/dev/null || { echo "protoc is required" >&2; exit 1; }
+command -v ssh >/dev/null || { echo "OpenSSH is required" >&2; exit 1; }
 
 # Build binaries for the detected OS/arch
 TARGET_OS=""
@@ -53,12 +52,10 @@ if [ "$OS_NAME" = "Darwin" ]; then
 else
 	TARGET_OS="linux"
 fi
-SRC_DAEMON="sshtmd-${TARGET_OS}-${ARCH_NAME}"
-SRC_CLIENT="sshtm-${TARGET_OS}-${ARCH_NAME}"
-log_step "🔨 Building daemon binary: $SRC_DAEMON"
-GOOS="$TARGET_OS" GOARCH="$ARCH_NAME" go build -o "$SRC_DAEMON" ./daemon
-log_step "🔨 Building client binary: $SRC_CLIENT"
-GOOS="$TARGET_OS" GOARCH="$ARCH_NAME" go build -o "$SRC_CLIENT" ./client
+SRC_DAEMON="target/release/sshtmd"
+SRC_CLIENT="target/release/sshtm"
+log_step "🔨 Building Rust daemon and client"
+cargo build --release
 
 # Create required directories
 log_step "📁 Creating application directories"

@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Basant Besra <besrabasant@gmail.com>
 Standards-Version: 4.5.0
-Build-Depends: debhelper-compat (= 13), golang-any, make
+Build-Depends: debhelper-compat (= 13), cargo, rustc, protobuf-compiler, make
 Homepage: https://github.com/besrabasant/ssh-tunnel-manager
 
 Package: sshtm
