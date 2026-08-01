@@ -9,6 +9,7 @@ use tonic::transport::{Channel, Endpoint};
 #[derive(Parser)]
 #[command(name = "sshtm", version, about = "Manage SSH tunnels with ease")]
 struct Cli {
+    // No subcommand intentionally launches the interactive menu.
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -47,6 +48,7 @@ enum Commands {
 }
 
 async fn client() -> Result<DaemonServiceClient<Channel>> {
+    // Bound connection and request timeouts keep scripts from hanging on a dead daemon.
     let endpoint = Endpoint::from_static("http://127.0.0.1:50051")
         .connect_timeout(std::time::Duration::from_secs(10))
         .timeout(std::time::Duration::from_secs(20));
@@ -57,6 +59,7 @@ async fn client() -> Result<DaemonServiceClient<Channel>> {
 
 #[tokio::main]
 async fn main() {
+    // Render the complete anyhow context chain and expose failures through the exit code.
     if let Err(error) = run().await {
         eprintln!("{error:#}");
         std::process::exit(1);
@@ -67,6 +70,7 @@ async fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Completion { shell }) => {
+            // Generate completions from the same Clap command tree used for parsing.
             generate(shell, &mut Cli::command(), "sshtm", &mut io::stdout());
         }
         Some(Commands::Version) => {
@@ -117,6 +121,7 @@ async fn run() -> Result<()> {
         }
         Some(Commands::Edit { name }) => {
             let mut daemon = client().await?;
+            // Fetch first so pressing Enter in a prompt retains the existing field value.
             let fetched = daemon
                 .fetch_configuration(FetchConfigurationRequest { name: name.clone() })
                 .await?
@@ -152,6 +157,7 @@ async fn run() -> Result<()> {
                 .await?
                 .into_inner();
             for event in &response.events {
+                // Structured events preserve daemon setup progress without parsing result text.
                 println!("{event}");
             }
             if !response.message.is_empty() {
@@ -162,6 +168,7 @@ async fn run() -> Result<()> {
             }
         }
         Some(Commands::Kill { identifier }) => {
+            // Match the legacy CLI: an integer identifies a port; all other text is a name.
             let (config_name, local_port) = match identifier.parse::<i32>() {
                 Ok(port) => (String::new(), port),
                 Err(_) => (identifier, 0),
@@ -182,6 +189,7 @@ async fn run() -> Result<()> {
 }
 
 async fn interactive() -> Result<()> {
+    // Keep a dependency-light line-oriented UI for users who invoke sshtm without arguments.
     loop {
         println!("\nSSH Tunnel Manager");
         println!("1) List configurations  2) Active tunnels  3) Start  4) Kill  5) Quit");
@@ -252,6 +260,7 @@ async fn interactive() -> Result<()> {
 }
 
 fn prompt_config(existing: Option<TunnelConfig>) -> Result<TunnelConfig> {
+    // The same prompt sequence handles creation and editing through optional defaults.
     let old = existing.unwrap_or_default();
     let name = prompt("Name", &old.name)?;
     let description = prompt("Description", &old.description)?;
@@ -282,6 +291,7 @@ fn prompt(label: &str, default: &str) -> Result<String> {
     io::stdout().flush()?;
     let mut value = String::new();
     io::stdin().read_line(&mut value)?;
+    // Empty input accepts the displayed default, which is empty for new profiles.
     let value = value.trim().to_string();
     Ok(if value.is_empty() {
         default.to_string()
@@ -304,6 +314,7 @@ fn parse_port(label: &str, default: i32, allow_zero: bool) -> Result<i32> {
 }
 
 fn print_mutation(status: i32, message: &str) {
+    // Keep failures on stderr so command output remains usable in shell pipelines.
     if status == ResponseStatus::Error as i32 {
         eprintln!("{message}");
     } else {

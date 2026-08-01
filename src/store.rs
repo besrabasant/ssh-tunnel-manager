@@ -5,6 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+// Go's encoding/json used exported field names, so PascalCase is an on-disk contract.
 #[serde(rename_all = "PascalCase")]
 pub struct Entry {
     pub name: String,
@@ -18,6 +19,7 @@ pub struct Entry {
 }
 
 impl Entry {
+    /// Validates the fields that are required before a profile can be persisted.
     pub fn validate(&self) -> Result<()> {
         let mut missing = Vec::new();
         for (name, value) in [
@@ -78,6 +80,7 @@ pub struct Store {
 }
 
 impl Store {
+    /// Opens the repository, creating its user-scoped directory on first use.
     pub fn new(dir: impl Into<PathBuf>) -> Result<Self> {
         let dir = dir.into();
         fs::create_dir_all(&dir)
@@ -86,6 +89,7 @@ impl Store {
     }
 
     fn path(&self, name: &str) -> Result<PathBuf> {
+        // Names become filenames, so separators and traversal components are forbidden.
         if name.is_empty()
             || name.contains('/')
             || name.contains('\\')
@@ -98,6 +102,7 @@ impl Store {
     }
 
     pub fn list(&self) -> Result<Vec<Entry>> {
+        // active_tunnels.json belongs to the daemon registry, not the profile list.
         let mut paths = fs::read_dir(&self.dir)
             .with_context(|| format!("couldn't read directory {}", self.dir.display()))?
             .filter_map(Result::ok)
@@ -109,6 +114,7 @@ impl Store {
             })
             .collect::<Vec<_>>();
         paths.sort();
+        // Sorting filenames makes CLI and RPC output deterministic across filesystems.
         paths
             .into_iter()
             .map(|path| self.read_path(&path))
@@ -142,6 +148,7 @@ impl Store {
         }
         entry.validate()?;
         let new_path = self.path(&entry.name)?;
+        // Write the replacement before removing the old file so a rename cannot lose data.
         atomic_json(&new_path, entry)?;
         if old_path != new_path {
             fs::remove_file(old_path)?;
@@ -161,6 +168,7 @@ impl Store {
 
 pub fn atomic_json(path: &Path, value: &impl Serialize) -> Result<()> {
     let data = serde_json::to_vec_pretty(value)?;
+    // A same-directory temporary file lets rename provide atomic replacement semantics.
     let temp = path.with_extension(format!("json.tmp.{}", std::process::id()));
     fs::write(&temp, data).with_context(|| format!("couldn't write file {}", temp.display()))?;
     fs::rename(&temp, path).with_context(|| format!("couldn't replace file {}", path.display()))?;

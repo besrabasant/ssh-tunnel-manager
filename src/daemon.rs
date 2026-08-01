@@ -14,11 +14,14 @@ use tokio::time::{Duration, sleep};
 use tonic::{Request, Response, Status};
 
 #[derive(Clone)]
+/// Shared daemon state used by every concurrent tonic request handler.
 pub struct Service {
     store: Store,
+    // The local port is the registry key because only one listener can own it.
     tunnels: Arc<Mutex<HashMap<i32, RunningTunnel>>>,
 }
 
+/// Owns the child process so dropping or killing a registry entry closes its tunnel.
 struct RunningTunnel {
     entry: Entry,
     port: i32,
@@ -26,6 +29,7 @@ struct RunningTunnel {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+/// On-disk restoration record compatible with Go's active_tunnels.json schema.
 struct SavedTunnel {
     config_name: String,
     local_port: i32,
@@ -50,6 +54,7 @@ impl Service {
     }
 
     pub async fn restore(&self) -> Result<()> {
+        // A missing state file simply means the previous shutdown had no active tunnels.
         let path = self.store.active_path();
         let saved: Vec<SavedTunnel> = match fs::read(&path) {
             Ok(data) => serde_json::from_slice(&data).context("parse active_tunnels.json")?,
@@ -57,6 +62,7 @@ impl Service {
             Err(err) => return Err(err.into()),
         };
         for tunnel in saved {
+            // Restore independently so one stale profile does not prevent other tunnels.
             if let Err(error) = self.start(&tunnel.config_name, tunnel.local_port).await {
                 eprintln!("failed to restore tunnel {}: {error:#}", tunnel.config_name);
             }
@@ -65,6 +71,7 @@ impl Service {
     }
 
     pub async fn shutdown(&self) -> Result<()> {
+        // Persist before killing children; the next daemon process will recreate them.
         self.persist().await?;
         let mut tunnels = self.tunnels.lock().await;
         for tunnel in tunnels.values_mut() {
@@ -77,6 +84,7 @@ impl Service {
     async fn persist(&self) -> Result<()> {
         let tunnels = self.tunnels.lock().await;
         if tunnels.is_empty() {
+            // Absence, rather than an empty array, matches the previous Go behavior.
             match fs::remove_file(self.store.active_path()) {
                 Ok(()) => {}
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
@@ -101,14 +109,17 @@ impl Service {
     }
 
     async fn start(&self, name: &str, requested_port: i32) -> Result<Vec<String>> {
+        // Remove processes that exited since the last registry operation.
         self.reap().await;
         let entry = self.store.get(name)?;
+        // -1 means "use the profile default"; zero asks the OS for a free port.
         let port = if requested_port == -1 {
             entry.local_port
         } else {
             requested_port
         };
         let port = if port == 0 {
+            // Bind port zero briefly to discover a currently available ephemeral port.
             let listener = TcpListener::bind("127.0.0.1:0")?;
             listener.local_addr()?.port() as i32
         } else {
@@ -123,6 +134,7 @@ impl Service {
         TcpListener::bind(("127.0.0.1", port as u16))
             .with_context(|| format!("local port {port} is unavailable"))?;
 
+        // OpenSSH expects its port separately, while profiles store host[:port].
         let server = if entry.server.contains(':') {
             entry.server.clone()
         } else {
@@ -135,6 +147,7 @@ impl Service {
         );
         let destination = format!("{}@{host}", entry.user);
         let mut command = Command::new("ssh");
+        // -N/-T create forwarding only. Batch mode prevents a daemon-side password prompt.
         command
             .kill_on_drop(true)
             .args([
@@ -164,6 +177,7 @@ impl Service {
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::piped());
         let mut child = command.spawn().context("couldn't execute OpenSSH client")?;
+        // ExitOnForwardFailure makes early termination a reliable setup failure signal.
         sleep(Duration::from_millis(250)).await;
         if let Some(status) = child.try_wait()? {
             let stderr = child.stderr.take();
@@ -185,6 +199,7 @@ impl Service {
                 child,
             },
         );
+        // Persist only after OpenSSH has survived its setup window and entered the registry.
         self.persist().await?;
         Ok(vec![
             "Starting tunnel setup...".into(),
@@ -198,6 +213,7 @@ impl Service {
     }
 
     async fn stop(&self, name: &str, port: i32) -> Result<String> {
+        // A textual identifier selects by profile name; a numeric identifier selects by port.
         let target = {
             let tunnels = self.tunnels.lock().await;
             if !name.is_empty() {
@@ -224,6 +240,7 @@ impl Service {
             .await
             .remove(&target)
             .expect("target exists");
+        // Remove first so concurrent list/start requests cannot observe a stopping tunnel.
         tunnel.child.kill().await.context("stop SSH process")?;
         self.persist().await?;
         Ok(format!(
@@ -233,6 +250,7 @@ impl Service {
     }
 
     async fn active(&self) -> Vec<ActiveTunnel> {
+        // Avoid reporting children that have already exited due to network or auth failure.
         self.reap().await;
         self.tunnels
             .lock()
@@ -249,6 +267,7 @@ impl Service {
     }
 
     async fn reap(&self) {
+        // try_wait is non-blocking; live children return Ok(None) and stay registered.
         self.tunnels
             .lock()
             .await
@@ -266,6 +285,7 @@ impl Service {
 }
 
 fn split_server(server: &str) -> Result<(String, String)> {
+    // Bracketed IPv6 addresses must be split after the closing bracket, not on ':'.
     if let Some(value) = server.strip_prefix('[') {
         let (host, port) = value.rsplit_once("]:").context("bad SSH server address")?;
         return Ok((host.into(), port.into()));
@@ -292,6 +312,7 @@ impl DaemonService for Service {
     ) -> Result<Response<ListConfigurationsResponse>, Status> {
         let pattern = request.into_inner().search_pattern.to_lowercase();
         let mut configs = self.store.list().map_err(internal)?;
+        // Match characters in order to preserve the former fuzzy-search behavior.
         if !pattern.is_empty() {
             configs.retain(|entry| fuzzy_match(&pattern, &entry.name.to_lowercase()));
         }

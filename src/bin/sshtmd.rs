@@ -6,6 +6,7 @@ use tonic::transport::Server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Construct one shared service instance for restoration, RPCs, and shutdown.
     let service = Service::new(Store::new(sshtm::config_dir())?);
     service.restore().await?;
     eprintln!("server listening at {}", sshtm::ADDRESS);
@@ -13,6 +14,7 @@ async fn main() -> Result<()> {
         .add_service(DaemonServiceServer::new(service.clone()))
         .serve_with_shutdown(sshtm::ADDRESS.parse()?, shutdown_signal())
         .await?;
+    // gRPC has stopped accepting work, so it is now safe to snapshot and stop children.
     service.shutdown().await
 }
 
@@ -20,6 +22,7 @@ async fn main() -> Result<()> {
 async fn shutdown_signal() {
     use tokio::signal::unix::{SignalKind, signal};
     let mut terminate = signal(SignalKind::terminate()).expect("install SIGTERM handler");
+    // User services normally send SIGTERM, while foreground runs commonly use Ctrl-C.
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {},
         _ = terminate.recv() => {},
