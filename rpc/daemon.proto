@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package daemon;
 
-option go_package = "github.com/besrabasant/ssh-tunnel-manager/rpc";
-
 service DaemonService {
   rpc ListConfigurations (ListConfigurationsRequest) returns (ListConfigurationsResponse) {}
 

@@ -1,0 +1,38 @@
+[package]
+name = "ssh-tunnel-manager"
+version = "1.1.5"
+edition = "2024"
+license = "MIT"
+description = "CLI and daemon for reusable SSH local port forwarding"
+build = "build.rs"
+
+[lib]
+name = "sshtm"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sshtm"
+path = "src/bin/sshtm.rs"
+
+[[bin]]
+name = "sshtmd"
+path = "src/bin/sshtmd.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+dirs = "6"
+prost = "0.14"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["io-util", "macros", "process", "rt-multi-thread", "signal", "sync", "time"] }
+tonic = "0.14"
+tonic-prost = "0.14"
+
+[build-dependencies]
+tonic-prost-build = "0.14"
+
+[dev-dependencies]
+tempfile = "3"

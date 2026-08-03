@@ -15,11 +15,12 @@ Current version: **v1.1.5**
 
 ## Requirements
 
-- **Go 1.25 or later** for building from source.
+- **Rust 1.85 or later**, Cargo, and `protoc` for building from source.
+- **OpenSSH client** at runtime. The daemon supervises `ssh` processes for local
+  forwarding and uses the user's existing SSH configuration and key files.
 - **Git** for cloning the repository.
 
 - **systemd user services** on Linux or **LaunchAgents** on macOS for the installed daemon service.
-- **Air** *(optional)* for live reload during development.
 
 ## Installation
 
@@ -148,33 +149,35 @@ Use `sshtm help <command>` for command-specific details.
 
 ## Development
 
+The application is implemented in Rust. The completed migration's compatibility
+requirements and design record are available in the
+[Go-to-Rust migration plan](docs/rust-migration.md).
+
 ### Generate protobuf code
 
 ```sh
-make gen_proto
+cargo build
 ```
 
-### Start the daemon with live reload
+`build.rs` regenerates the Rust gRPC bindings whenever `rpc/daemon.proto`
+changes.
+
+### Start the daemon
 
 ```sh
-make gen_proto
-air
+cargo run --bin sshtmd
 ```
-
-This assumes [Air](https://github.com/air-verse/air) is installed and the command is run from the project root.
 
 ### Run the CLI from source
 
 ```sh
-cd client
-go run main.go [command] [arguments]
+cargo run --bin sshtm -- [command] [arguments]
 ```
 
 For example:
 
 ```sh
-cd client
-go run main.go list
+cargo run --bin sshtm -- list
 ```
 
 ### Build locally
@@ -198,29 +201,21 @@ make build_macos   # darwin/amd64 + darwin/arm64
 make build_all     # linux + macos
 ```
 
-You can pass an explicit version into builds:
-
-```sh
-make VERSION=1.1.5 build_all
-```
-
 ### Run tests
 
 ```sh
-go test ./...
+cargo test
 ```
 
 ## Project layout
 
 ```text
-client/      CLI commands, terminal forms, and daemon client helpers
-daemon/      Background daemon and gRPC server task handlers
-pkg/         Reusable configuration and tunnel-management packages
-rpc/         Protobuf definitions and generated gRPC code
-config/      Application constants and version metadata
+src/bin/     CLI and daemon executable entry points
+src/         Configuration storage, tunnel lifecycle, and gRPC service logic
+rpc/         Protobuf service definition
 packaging/   Arch Linux and Debian packaging files
 scripts/     Install/uninstall helper scripts
-utils/       Shared utility helpers
+build.rs     Reproducible protobuf code generation
 ```
 
 ## Versioning policy
